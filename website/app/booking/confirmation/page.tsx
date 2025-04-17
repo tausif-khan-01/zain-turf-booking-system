@@ -9,7 +9,6 @@ import {
   ChevronLeft,
   Clock,
   Download,
-  Users,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -27,10 +26,7 @@ interface BookingData {
   remainingPayment: number;
   totalAmount: number;
   name: string;
-  email: string;
   phone: string;
-  players: string;
-  notes?: string;
 }
 
 export default function BookingConfirmation() {
@@ -86,7 +82,7 @@ export default function BookingConfirmation() {
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
         <h1 className="text-2xl font-bold mb-4">No Booking Found</h1>
         <p className="text-gray-600 mb-6">
-          We couldn't find your booking information.
+          We couldn&apos;t find your booking information.
         </p>
         <Link href="/booking">
           <Button>Return to Booking Page</Button>
