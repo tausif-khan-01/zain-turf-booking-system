@@ -1,6 +1,12 @@
+import { format } from "date-fns";
 import { Separator } from "@/components/ui/separator";
 import { getSlotEndTime } from "@/utils/getEndTime";
-import { formatBookingDate, calculateTotalPrice, calculateRemainingAmount, type SelectedSlotInfo } from "@/utils/bookingUtils";
+import {
+  formatBookingDate,
+  calculateTotalPrice,
+  calculateRemainingAmount,
+  type SelectedSlotInfo,
+} from "@/utils/bookingUtils";
 
 interface BookingConfirmationProps {
   date: string;
@@ -54,17 +60,21 @@ export function BookingConfirmation({
           <Separator />
           <div className="flex justify-between">
             <span className="text-gray-600">Total Turf Fee:</span>
-            <span className="font-medium">{calculateTotalPrice(selectedSlots)}</span>
+            <span className="font-medium">
+              {calculateTotalPrice(selectedSlots)}
+            </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-600">Online Payment (Now):</span>
+            <span className="text-gray-600">Advance Payment (Now):</span>
             <span className="font-medium">
               {calculateTotalPrice(selectedSlots, false, true)}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-600">Remaining (At Venue):</span>
-            <span className="font-medium">{calculateRemainingAmount(selectedSlots)}</span>
+            <span className="font-medium">
+              {calculateRemainingAmount(selectedSlots)}
+            </span>
           </div>
           <div className="flex justify-between text-lg mt-2">
             <span className="font-semibold">Total Amount:</span>

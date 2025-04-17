@@ -23,7 +23,9 @@ import {
 
 export default function BookingPage() {
   const router = useRouter();
-  const [date, setDate] = useState<string>(new Date().toISOString().split("T")[0]);
+  const [date, setDate] = useState<string>(
+    new Date().toISOString().split("T")[0]
+  );
   const [selectedSlots, setSelectedSlots] = useState<SelectedSlotInfo[]>([]);
   const [bookingStep, setBookingStep] = useState(1);
   const [formData, setFormData] = useState<FormData>({
@@ -226,7 +228,7 @@ export default function BookingPage() {
                     onClick={handleSubmit}
                     className="bg-primary hover:bg-primary/90"
                   >
-                    Confirm Booking
+                    Pay Advance & Complete Booking
                   </Button>
                 )}
               </CardFooter>
@@ -234,10 +236,7 @@ export default function BookingPage() {
           </div>
 
           {bookingStep !== 3 && (
-            <BookingSummary
-              date={date}
-              selectedSlots={selectedSlots}
-            />
+            <BookingSummary date={date} selectedSlots={selectedSlots} />
           )}
         </div>
       </div>

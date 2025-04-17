@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   CalendarIcon,
   ClockIcon,
@@ -129,9 +129,18 @@ export default function Home() {
                 : "translate-y-10 opacity-0"
             )}
           >
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-              <span className="text-primary">Zain</span> Turf
-            </h1>
+            <div className="flex items-center gap-4 mb-6">
+              <Image
+                src="/logo.jpg"
+                alt="Zain Turf Logo"
+                width={80}
+                height={80}
+                className="  size-12  "
+              />
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold">
+                <span className="text-primary">Zain</span> Turf
+              </h1>
+            </div>
             <p className="text-lg md:text-xl mb-8 text-gray-200 max-w-xl">
               Experience professional football at its finest. Our FIFA-approved
               artificial turf provides the perfect playing surface for both
@@ -151,7 +160,7 @@ export default function Home() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="border-white text-white hover:bg-white/10 w-full sm:w-auto bg-transparent  hover:text-white cursor-pointer"
+                  className="border-white text-white hover:bg-white/10 w-full sm:w-auto bg-transparent hover:text-white cursor-pointer"
                 >
                   Explore Features
                   <ChevronRightIcon className="w-5 h-5 ml-2" />
@@ -290,17 +299,15 @@ export default function Home() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(3)].map((_, index) => {
-              const image =
-                index % 2 === 0 ? carouselImages[0] : carouselImages[1];
+            {[...Array(6)].map((_, index) => {
               return (
                 <div
                   key={index}
                   className="relative h-64 rounded-lg overflow-hidden group"
                 >
                   <Image
-                    src={image.src}
-                    alt={image.alt}
+                    src={`/img/turf-${index + 1}.jpg`}
+                    alt={`Zain Turf - Play Ground ${index + 1}`}
                     fill
                     loading="lazy"
                     className="object-cover transition-transform duration-500 group-hover:scale-110"
@@ -309,7 +316,12 @@ export default function Home() {
                     <Button
                       variant="outline"
                       className="border-white text-white hover:bg-white/10 w-full sm:w-auto bg-transparent hover:text-white cursor-pointer"
-                      onClick={() => setSelectedImage(image)}
+                      onClick={() =>
+                        setSelectedImage({
+                          src: `/img/turf-${index + 1}.jpg`,
+                          alt: `Zain Turf - Play Ground ${index + 1}`,
+                        })
+                      }
                     >
                       View Larger
                     </Button>

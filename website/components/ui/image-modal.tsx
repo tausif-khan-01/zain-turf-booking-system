@@ -22,9 +22,9 @@ export function ImageModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 bg-transparent border-none">
+      <DialogContent className="  min-w-[75vw] p-0 bg-transparent border-none">
         <DialogTitle className="sr-only">Image Preview</DialogTitle>
-        <div className="relative aspect-video w-full">
+        <div className="relative aspect-video flex ">
           <Image
             src={imageUrl}
             alt={alt}
