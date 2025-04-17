@@ -22,7 +22,7 @@ export const calculateTotalPrice = (
   selectedSlots: SelectedSlotInfo[],
   numeric = false,
   onlineOnly = false
-) => {
+): number | string => {
   const numberOfSlots = selectedSlots.length;
   if (numberOfSlots === 0) return numeric ? 0 : "₹0";
 
@@ -36,20 +36,40 @@ export const calculateTotalPrice = (
   return numeric ? total : `₹${total}`;
 };
 
+export const calculateAdvanceAmount = (duration: number) => {
+  return BOOKING_FEE * duration;
+};
+
+// calculate razorpay transaction fee 2% of advance amount
+export const calculateRazorpayTransactionFee = (
+  slots: number,
+  numeric = false
+): number | string => {
+  const total = BOOKING_FEE * slots * 0.02;
+
+  const gst = total * 0.18;
+
+  const totalAmount = total + gst;
+
+  return numeric ? totalAmount : `₹${totalAmount}`;
+};
+
 export const calculateRemainingAmount = (
   selectedSlots: SelectedSlotInfo[],
   numeric = false
 ) => {
   const totalPrice = calculateTotalPrice(selectedSlots, true) as number;
-  const onlinePayment = calculateTotalPrice(selectedSlots, true, true) as number;
+  const onlinePayment = calculateTotalPrice(
+    selectedSlots,
+    true,
+    true
+  ) as number;
   const remainingAmount = totalPrice - onlinePayment;
   return numeric ? remainingAmount : `₹${remainingAmount}`;
 };
 
 export const generateBookingId = () => {
-  return `ZT-${Date.now()
-    .toString(36)
-    .toUpperCase()}-${Math.random()
+  return `ZT-${Date.now().toString(36).toUpperCase()}-${Math.random()
     .toString(36)
     .substring(2, 7)
     .toUpperCase()}`;
@@ -57,4 +77,4 @@ export const generateBookingId = () => {
 
 export const formatBookingDate = (date: string) => {
   return format(new Date(date), "MMMM d, yyyy");
-}; 
+};

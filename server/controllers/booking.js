@@ -1,18 +1,17 @@
-import Booking from "../models/Booking.js";
-import { TURF_DETAILS } from "../constants/turf.js";
-import {
-  generateTimeSlots,
-  isSlotAvailable,
-  formatTime,
-} from "../utility/timeSlots.js";
-import Razorpay from "razorpay";
-import QRCode from "qrcode";
 import { format } from "date-fns";
+import Razorpay from "razorpay";
+import config from "../constants/config.js";
+import { TURF_DETAILS } from "../constants/turf.js";
+import Booking from "../models/Booking.js";
+import { formatTime, generateTimeSlots } from "../utility/timeSlots.js";
+import { newBookingId } from "../utility/newBookingId.js";
+import crypto from "crypto";
+import { calculateBookingAmount } from "../utility/booking-calc.js";
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
-  key_id: process.env.RAZORPAY_KEY_ID,
-  key_secret: process.env.RAZORPAY_KEY_SECRET,
+  key_id: config.razorpay.key,
+  key_secret: config.razorpay.secret,
 });
 
 // Get available slots for a date
@@ -73,85 +72,27 @@ export const getAvailableSlots = async (req, res) => {
   }
 };
 
-// Create a new booking
-export const createBooking = async (req, res) => {
+// create order
+export const createOrder = async (req, res) => {
   try {
-    const { date, startTime, duration, customerName, customerMobile } =
-      req.body;
+    const { amount } = req.body;
 
-    // Validate input
-    if (!date || !startTime || !duration || !customerName || !customerMobile) {
+    if (!amount) {
       return res.status(400).json({
         status: "error",
-        message: "All fields are required",
+        message: "Amount is required",
       });
     }
 
-    if (TURF_DETAILS.status === "maintenance") {
-      return res.status(400).json({
-        status: "error",
-        message: "Turf is not available for booking",
-      });
-    }
-
-    // Check if slot is available
-    const isAvailable = await isSlotAvailable(
-      new Date(date),
-      startTime,
-      duration,
-      Booking
-    );
-
-    if (!isAvailable) {
-      return res.status(400).json({
-        status: "error",
-        message: "Selected slot is not available",
-      });
-    }
-
-    // Calculate amounts
-    const totalAmount = TURF_DETAILS.pricePerHour * duration;
-    const advanceAmount = (totalAmount * TURF_DETAILS.advancePercentage) / 100;
-
-    // Create Razorpay order
     const order = await razorpay.orders.create({
-      amount: advanceAmount * 100, // Convert to paise
+      amount: amount * 100,
       currency: "INR",
-      receipt: `booking_${Date.now()}`,
+      receipt: "order_receipt",
     });
 
-    // Create booking
-    const booking = await Booking.create({
-      date: new Date(date),
-      startTime,
-      duration,
-      customerName,
-      customerMobile,
-      totalAmount,
-      advanceAmount,
-      razorpayOrderId: order.id,
-    });
-
-    // Generate QR code
-    const qrData = JSON.stringify({
-      bookingId: booking._id,
-      customerName,
-      date,
-      startTime,
-      duration,
-    });
-    const qrCode = await QRCode.toDataURL(qrData);
-
-    // Update booking with QR code
-    booking.qrCode = qrCode;
-    await booking.save();
-
-    res.status(201).json({
+    res.status(200).json({
       status: "success",
-      data: {
-        booking,
-        order,
-      },
+      order,
     });
   } catch (error) {
     res.status(400).json({
@@ -161,12 +102,91 @@ export const createBooking = async (req, res) => {
   }
 };
 
-// Get booking details
+// verify payment
+export const verifyPaymentAndBook = async (req, res) => {
+  try {
+    const {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+      booking,
+    } = req.body;
+
+    const body = razorpay_order_id + "|" + razorpay_payment_id;
+    const expectedSignature = crypto
+      .createHmac("sha256", config.razorpay.secret)
+      .update(body)
+      .digest("hex");
+
+    const isValid = crypto.timingSafeEqual(
+      Buffer.from(razorpay_signature),
+      Buffer.from(expectedSignature)
+    );
+
+    if (!isValid) {
+      return res.status(400).json({
+        status: "error",
+        message: "Payment failed",
+      });
+    }
+
+    const amountDetails = calculateBookingAmount(booking.duration);
+
+    // create booking with Razorpay fee details
+    const date = format(new Date(booking.date), "yyyy-MM-dd");
+
+    const bookingId = await newBookingId();
+
+    const bookingData = {
+      date,
+      startTime: booking.startTime,
+      duration: booking.duration,
+      customer: booking.customer,
+      bookingId,
+      amount: {
+        totalAmount: amountDetails.totalAmount,
+        advanceAmount: amountDetails.advanceAmount,
+        remainingAmount: amountDetails.remainingAmount,
+        transactions: [
+          {
+            amount: amountDetails.advanceAmount,
+            amountType: "advance",
+            paymentMethod: "razorpay",
+          },
+        ],
+      },
+      razorpay: {
+        isCustomerPayRazorpayFees: amountDetails.isCustomerPayRazorpayFees,
+        razorpay_order_id,
+        razorpay_payment_id,
+        razorpay_signature,
+      },
+    };
+
+    console.log(bookingData);
+
+    const newBooking = await Booking.create(bookingData);
+
+    res.status(200).json({
+      status: "success",
+      message: "Payment verified and booking created",
+      bookingId: newBooking.bookingId,
+    });
+  } catch (error) {
+    console.log("error: ", error.message);
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+// get booking details
 export const getBookingDetails = async (req, res) => {
   try {
-    const { id } = req.params;
+    const { bookingId } = req.params;
 
-    const booking = await Booking.findById(id);
+    const booking = await Booking.findOne({ bookingId });
     if (!booking) {
       return res.status(404).json({
         status: "error",
@@ -176,7 +196,7 @@ export const getBookingDetails = async (req, res) => {
 
     res.status(200).json({
       status: "success",
-      data: booking,
+      booking,
     });
   } catch (error) {
     res.status(400).json({
@@ -232,7 +252,7 @@ export const updateBookingStatus = async (req, res) => {
 
     res.status(200).json({
       status: "success",
-      data: booking,
+      message: "Booking status updated",
     });
   } catch (error) {
     res.status(400).json({

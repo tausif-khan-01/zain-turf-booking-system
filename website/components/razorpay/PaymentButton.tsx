@@ -32,7 +32,7 @@ interface RazorpayOptions {
   handler: (response: RazorpayResponse) => void;
   prefill: {
     name: string;
-    email: string;
+
     contact: string;
   };
   theme: {
@@ -51,21 +51,38 @@ declare global {
   }
 }
 
+interface Booking {
+  date: string;
+  startTime: string;
+  duration: number;
+  customer: {
+    name: string;
+    contact: string;
+  };
+}
+
 export default function PaymentButton({
+  bookingInfo,
   amount,
-  currency = "INR",
+  onSuccess,
   children,
 }: {
+  bookingInfo: Booking;
   amount: number;
-  currency?: string;
+  onSuccess: (bookingId: string) => void;
   children: React.ReactNode;
 }) {
   const handlePayment = async () => {
+    if (!amount) {
+      throw new Error("Amount is required");
+    }
+
     // create order
-    const response = await api.post("/payment/create-order", {
+    const response = await api.post("/booking/create-order", {
       amount,
-      currency,
     });
+
+    console.log("success");
 
     if (response.status !== 200) {
       throw new Error("Failed to create order");
@@ -82,37 +99,28 @@ export default function PaymentButton({
       order_id: order.id,
       handler: async (response: RazorpayResponse) => {
         // verify payment
-        const verifyResponse = await api.post("/payment/verify-payment", {
-          razorpay_order_id: response.razorpay_order_id,
-          razorpay_payment_id: response.razorpay_payment_id,
-          razorpay_signature: response.razorpay_signature,
-        });
+        const verifyResponse = await api.post(
+          "/booking/verify-payment-and-book",
+          {
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            booking: bookingInfo,
+          }
+        );
 
         if (verifyResponse.status !== 200) {
           throw new Error("Failed to verify payment");
         }
 
-        const { payment } = verifyResponse.data;
-
-        console.log(payment);
+        const { bookingId } = verifyResponse.data;
 
         // update booking status
-        const updateResponse = await api.put(`/booking`, {
-          status: "paid",
-        });
-
-        if (updateResponse.status !== 200) {
-          throw new Error("Failed to update booking status");
-        }
-
-        const { booking } = updateResponse.data;
-
-        console.log(booking);
+        await onSuccess(bookingId);
       },
       prefill: {
-        name: "Zain Turf",
-        email: "zain@zainturf.com",
-        contact: "9876543210",
+        name: bookingInfo.customer.name,
+        contact: bookingInfo.customer.contact,
       },
       theme: {
         color: "#05df72",
@@ -127,13 +135,5 @@ export default function PaymentButton({
       console.log(response);
     });
   };
-  return (
-    <Button
-      variant="outline"
-      className="bg-primary text-white"
-      onClick={handlePayment}
-    >
-      {children}
-    </Button>
-  );
+  return <Button onClick={handlePayment}>{children}</Button>;
 }

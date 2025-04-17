@@ -19,7 +19,9 @@ import {
   calculateTotalPrice,
   calculateRemainingAmount,
   generateBookingId,
+  calculateAdvanceAmount,
 } from "@/utils/bookingUtils";
+import PaymentButton from "@/components/razorpay/PaymentButton";
 
 export default function BookingPage() {
   const router = useRouter();
@@ -123,34 +125,8 @@ export default function BookingPage() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const bookingId = generateBookingId();
-
-    const bookingData = {
-      id: bookingId,
-      date,
-      timeSlot: getSelectedSlotTimes(),
-      startTime: selectedSlots[0].startTime,
-      duration: selectedSlots.length,
-      onlinePayment: calculateTotalPrice(selectedSlots, true, true),
-      remainingPayment: calculateRemainingAmount(selectedSlots, true),
-      totalAmount: calculateTotalPrice(selectedSlots, true),
-      ...formData,
-    };
-
-    localStorage.setItem("bookingData", JSON.stringify(bookingData));
-    router.push("/booking/confirmation");
-  };
-
-  const getSelectedSlotTimes = () => {
-    const startTime = selectedSlots[0].startTime;
-    const endTime = getSlotEndTime(
-      selectedSlots[selectedSlots.length - 1].startTime,
-      selectedSlots.length
-    );
-    return `${startTime} - ${endTime}`;
+  const handleSubmit = (bookingId: string) => {
+    router.push(`/booking/confirmation?bookingId=${bookingId}`);
   };
 
   return (
@@ -224,12 +200,21 @@ export default function BookingPage() {
                     Continue
                   </Button>
                 ) : (
-                  <Button
-                    onClick={handleSubmit}
-                    className="bg-primary hover:bg-primary/90"
+                  <PaymentButton
+                    amount={calculateAdvanceAmount(selectedSlots.length)}
+                    onSuccess={handleSubmit}
+                    bookingInfo={{
+                      customer: {
+                        name: formData.name,
+                        contact: formData.phone,
+                      },
+                      date,
+                      startTime: selectedSlots[0].startTime,
+                      duration: selectedSlots.length,
+                    }}
                   >
                     Pay Advance & Complete Booking
-                  </Button>
+                  </PaymentButton>
                 )}
               </CardFooter>
             </Card>

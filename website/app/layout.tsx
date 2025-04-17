@@ -13,6 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://zainturf.com"),
   title: "Zain Turf - Biggest Turf in Parbhani",
   description:
     "Book your slot at Zain Turf, featuring professional-grade artificial grass, floodlights, and modern facilities in Parbhani, Maharashtra, India.",

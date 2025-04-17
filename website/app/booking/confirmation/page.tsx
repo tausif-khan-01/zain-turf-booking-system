@@ -2,6 +2,8 @@
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import api from "@/utils/api";
+import { getSlotEndTime } from "@/utils/getEndTime";
 import html2canvas from "html2canvas";
 import {
   Calendar,
@@ -9,51 +11,92 @@ import {
   ChevronLeft,
   Clock,
   Download,
+  Share,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
 import { useEffect, useRef, useState } from "react";
 
-interface BookingData {
-  id: string;
-  date: string;
-  timeSlot: string;
-  duration: number;
-  hourlyRate: number;
-  onlinePayment: number;
-  remainingPayment: number;
+interface Transaction {
+  amount: number;
+  paymentMethod: string;
+  amountType: string;
+  createdAt: string;
+}
+
+interface Amount {
   totalAmount: number;
-  name: string;
-  phone: string;
+  advanceAmount: number;
+  remainingAmount: number;
+  discount?: number;
+  transactions: Transaction[];
+}
+
+interface Razorpay {
+  isCustomerPayRazorpayFees: boolean;
+  razorpay_order_id?: string;
+  razorpay_payment_id?: string;
+  razorpay_signature?: string;
+}
+
+interface BookingData {
+  _id: string;
+  bookingId: string;
+  date: string;
+  startTime: string;
+  duration: number;
+  customer: {
+    name: string;
+    contact: string;
+  };
+  amount: Amount;
+  paymentStatus: "pending" | "completed" | "failed" | "refunded";
+  razorpay: Razorpay;
+  status: "confirmed" | "cancelled" | "completed";
+  createdAt: string;
+  updatedAt: string;
 }
 
 export default function BookingConfirmation() {
-  const router = useRouter();
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
+  const searchParams = useSearchParams();
+  const bookingId = searchParams.get("bookingId");
 
   useEffect(() => {
-    // Get booking data from localStorage
-    const storedData = localStorage.getItem("bookingData");
+    const fetchBookingData = async () => {
+      if (!bookingId) {
+        setError("No booking ID provided");
+        setIsLoading(false);
+        return;
+      }
 
-    if (storedData) {
-      setBookingData(JSON.parse(storedData));
-    } else {
-      // If no booking data, redirect to booking page
-      router.push("/booking");
-    }
+      try {
+        const response = await api.get(`/booking/${bookingId}`);
+        if (response.status !== 200) {
+          throw new Error("Failed to fetch booking data");
+        }
+        const data = response.data.booking;
+        setBookingData(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An error occurred");
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-    setIsLoading(false);
-  }, [router]);
+    fetchBookingData();
+  }, [bookingId]);
 
   const downloadReceipt = async () => {
     if (receiptRef.current) {
       try {
         const canvas = await html2canvas(receiptRef.current, {
-          scale: 2, // Higher scale for better quality
+          scale: 2,
           backgroundColor: "#ffffff",
           logging: false,
         });
@@ -61,7 +104,9 @@ export default function BookingConfirmation() {
         const image = canvas.toDataURL("image/png");
         const link = document.createElement("a");
         link.href = image;
-        link.download = `zain-turf-booking-${bookingData?.id || "receipt"}.png`;
+        link.download = `zain-turf-booking-${
+          bookingData?.bookingId || "receipt"
+        }.png`;
         link.click();
       } catch (error) {
         console.error("Error generating receipt image:", error);
@@ -71,18 +116,48 @@ export default function BookingConfirmation() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
+      <main className="min-h-screen bg-gray-50 py-8 px-4">
+        <div className="container mx-auto max-w-3xl">
+          <div className="mb-8 flex flex-col items-center text-center">
+            <div className="w-16 h-16 bg-gray-200 rounded-full animate-pulse mb-4" />
+            <div className="h-8 w-48 bg-gray-200 rounded animate-pulse mb-2" />
+            <div className="h-4 w-64 bg-gray-200 rounded animate-pulse" />
+          </div>
+
+          <div className="bg-white rounded-lg shadow-lg p-4">
+            <div className="space-y-4">
+              <div className="h-8 w-32 bg-gray-200 rounded animate-pulse" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-6 w-32 bg-gray-200 rounded animate-pulse" />
+                </div>
+                <div className="space-y-2">
+                  <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-6 w-32 bg-gray-200 rounded animate-pulse" />
+                </div>
+              </div>
+              <div className="h-px bg-gray-200" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <div className="h-4 w-24 bg-gray-200 rounded animate-pulse" />
+                  <div className="h-6 w-32 bg-gray-200 rounded animate-pulse" />
+                </div>
+                <div className="h-20 w-20 bg-gray-200 rounded animate-pulse mx-auto" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </main>
     );
   }
 
-  if (!bookingData) {
+  if (error || !bookingData) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4">
-        <h1 className="text-2xl font-bold mb-4">No Booking Found</h1>
+        <h1 className="text-2xl font-bold mb-4">Error</h1>
         <p className="text-gray-600 mb-6">
-          We couldn&apos;t find your booking information.
+          {error || "We couldn't find your booking information."}
         </p>
         <Link href="/booking">
           <Button>Return to Booking Page</Button>
@@ -90,6 +165,23 @@ export default function BookingConfirmation() {
       </div>
     );
   }
+
+  const shareReceipt = async () => {
+    if (receiptRef.current) {
+      const canvas = await html2canvas(receiptRef.current, {
+        scale: 2,
+        backgroundColor: "#ffffff",
+        logging: false,
+      });
+
+      const image = canvas.toDataURL("image/png");
+      navigator.share({
+        title: "Zain Turf Booking Receipt",
+        text: "Check out my booking details",
+        files: [new File([image], "receipt.png", { type: "image/png" })],
+      });
+    }
+  };
 
   return (
     <main className="min-h-screen bg-gray-50 py-8 px-4">
@@ -107,16 +199,16 @@ export default function BookingConfirmation() {
 
         <div
           ref={receiptRef}
-          className="bg-white rounded-lg shadow-lg max-w-3xl mx-auto  mb-8   receipt-compatible  "
+          className="bg-white rounded-lg shadow-lg max-w-3xl mx-auto mb-8 receipt-compatible"
         >
           <div className="bg-primary p-4 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="  mr-3  h-full   flex items-center justify-center">
+                <div className="mr-3 h-full flex items-center justify-center">
                   <Image
                     src="/logo.jpg"
                     alt="Zain Turf Logo"
-                    className="h-12  "
+                    className="h-12"
                     width={48}
                     height={48}
                   />
@@ -128,7 +220,7 @@ export default function BookingConfirmation() {
               </div>
               <div className="text-right">
                 <p className="text-xs">Booking ID</p>
-                <p className="text-sm font-semibold">{bookingData.id}</p>
+                <p className="text-sm font-semibold">{bookingData.bookingId}</p>
               </div>
             </div>
           </div>
@@ -144,7 +236,9 @@ export default function BookingConfirmation() {
                     <Calendar className="size-5 text-primary mr-2" />
                     <div>
                       <p className="text-xs text-gray-500">Date</p>
-                      <p className="text-sm font-medium">{bookingData.date}</p>
+                      <p className="text-sm font-medium">
+                        {new Date(bookingData.date).toLocaleDateString()}
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -152,7 +246,12 @@ export default function BookingConfirmation() {
                     <div>
                       <p className="text-xs text-gray-500">Time</p>
                       <p className="text-sm font-medium">
-                        {bookingData.timeSlot}
+                        {bookingData.startTime} -{" "}
+                        {getSlotEndTime(
+                          bookingData.startTime,
+                          bookingData.duration
+                        )}{" "}
+                        ({bookingData.duration} hours)
                       </p>
                     </div>
                   </div>
@@ -166,11 +265,15 @@ export default function BookingConfirmation() {
                 <div className="space-y-1">
                   <div>
                     <p className="text-xs text-gray-500">Name</p>
-                    <p className="text-sm font-medium">{bookingData.name}</p>
+                    <p className="text-sm font-medium">
+                      {bookingData.customer.name}
+                    </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500">Phone</p>
-                    <p className="text-sm font-medium">{bookingData.phone}</p>
+                    <p className="text-sm font-medium">
+                      {bookingData.customer.contact}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -185,20 +288,23 @@ export default function BookingConfirmation() {
                 </h3>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Total ({bookingData.duration} hr
-                      {bookingData.duration !== 1 ? "s" : ""})
-                    </span>
-                    <span>₹{bookingData.totalAmount}</span>
+                    <span className="text-gray-600">Total Amount</span>
+                    <span>₹{bookingData.amount.totalAmount}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Paid Online</span>
-                    <span>₹{bookingData.onlinePayment}</span>
+                    <span className="text-gray-600">Advance Paid</span>
+                    <span>₹{bookingData.amount.advanceAmount}</span>
                   </div>
+                  {bookingData.amount.discount && (
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Discount</span>
+                      <span>₹{bookingData.amount.discount}</span>
+                    </div>
+                  )}
                   <div className="flex justify-between font-semibold">
-                    <span>Pay at Venue</span>
+                    <span>Remaining Amount</span>
                     <span className="text-primary">
-                      ₹{bookingData.remainingPayment}
+                      ₹{bookingData.amount.remainingAmount}
                     </span>
                   </div>
                 </div>
@@ -207,7 +313,7 @@ export default function BookingConfirmation() {
               <div className="flex flex-col items-center justify-center">
                 <div className="bg-white p-1 rounded-lg shadow-sm mb-1">
                   <QRCodeCanvas
-                    value={`ZAIN-TURF-BOOKING:${bookingData.id}`}
+                    value={`ZAIN-TURF-BOOKING:${bookingData.bookingId}`}
                     size={80}
                     level="H"
                     includeMargin={true}
@@ -244,6 +350,12 @@ export default function BookingConfirmation() {
           <Button onClick={downloadReceipt}>
             <Download className="w-4 h-4 mr-2" />
             Download Receipt
+          </Button>
+
+          {/* share if user is on mobile  it should open share dialog whith the receipt image */}
+          <Button onClick={shareReceipt}>
+            <Share className="w-4 h-4 mr-2" />
+            Share Receipt
           </Button>
         </div>
       </div>
