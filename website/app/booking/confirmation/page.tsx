@@ -57,7 +57,7 @@ export default function BookingConfirmation() {
     if (receiptRef.current) {
       try {
         const canvas = await html2canvas(receiptRef.current, {
-          scale: 10, // Higher scale for better quality
+          scale: 2, // Higher scale for better quality
           backgroundColor: "#ffffff",
           logging: false,
         });
@@ -111,13 +111,12 @@ export default function BookingConfirmation() {
 
         <div
           ref={receiptRef}
-          className="bg-white rounded-lg shadow-lg overflow-hidden mb-8 max-h-[100vh] overflow-y-auto receipt-compatible"
-          style={{ maxHeight: "calc(100vh - 100px)" }}
+          className="bg-white rounded-lg shadow-lg max-w-3xl mx-auto  mb-8   receipt-compatible  "
         >
           <div className="bg-primary p-4 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="w-12 h-12 mr-3 rounded-full overflow-hidden bg-white flex items-center justify-center">
+                <div className="w-12 h-12 mr-3 rounded-full   bg-white flex items-center justify-center">
                   <Image
                     src="/placeholder.svg?height=48&width=48"
                     alt="Zain Turf Logo"
@@ -146,27 +145,18 @@ export default function BookingConfirmation() {
                 </h3>
                 <div className="space-y-1">
                   <div className="flex items-center">
-                    <Calendar className="w-4 h-4 text-primary mr-1" />
+                    <Calendar className="size-5 text-primary mr-2" />
                     <div>
                       <p className="text-xs text-gray-500">Date</p>
                       <p className="text-sm font-medium">{bookingData.date}</p>
                     </div>
                   </div>
                   <div className="flex items-center">
-                    <Clock className="w-4 h-4 text-primary mr-1" />
+                    <Clock className="size-5 text-primary mr-2" />
                     <div>
                       <p className="text-xs text-gray-500">Time</p>
                       <p className="text-sm font-medium">
                         {bookingData.timeSlot}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center">
-                    <Users className="w-4 h-4 text-primary mr-1" />
-                    <div>
-                      <p className="text-xs text-gray-500">Players</p>
-                      <p className="text-sm font-medium">
-                        {bookingData.players}
                       </p>
                     </div>
                   </div>
