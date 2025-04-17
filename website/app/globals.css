@@ -145,6 +145,34 @@ body {
   @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
 }
 
+/* Receipt specific colors for html2canvas compatibility */
+.receipt-compatible {
+  --background: #ffffff;
+  --foreground: #171717;
+  --primary: #00a527;
+  --primary-foreground: #ffffff;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --border: #e5e5e5;
+  --accent: #f5f5f5;
+  --ring: #00a527;
+  /* add more colors as needed  */
+  --color-gray-700: #171717;
+  --color-gray-500: #737373;
+  --color-gray-100: #f5f5f5;
+  --color-gray-50: #f5f5f5;
+  --color-gray-200: #e5e5e5;
+  --color-gray-300: #e5e5e5;
+  --color-gray-400: #e5e5e5;
+  --color-gray-600: #737373;
+
+  --color-white: #ffffff;
+  --color-green-600: #00a527;
+  --color-green-500: #00a527;
+
+  outline-color: #00a527;
+}
+
 /* Smooth scrolling */
 html {
   scroll-behavior: smooth;
