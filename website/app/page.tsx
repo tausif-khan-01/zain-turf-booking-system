@@ -26,12 +26,16 @@ import { ImageModal } from "@/components/ui/image-modal";
 
 const carouselImages = [
   {
-    src: "/img/turf.jpg",
-    alt: "Zain Turf - Professional Football Ground",
+    src: "/img/turf-1.jpg",
+    alt: "Zain Turf - Play Ground 1",
   },
   {
     src: "/img/turf-2.jpg",
-    alt: "Zain Turf - Modern Facilities",
+    alt: "Zain Turf - Play Ground 2",
+  },
+  {
+    src: "/img/turf-3.jpg",
+    alt: "Zain Turf - Play Ground 3",
   },
 ];
 
@@ -412,8 +416,14 @@ export default function Home() {
             {/* Logo and About */}
             <div className="col-span-1 md:col-span-1">
               <div className="flex items-center mb-4">
-                <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center mr-3">
-                  <span className="font-bold text-white text-xl">ZT</span>
+                <div className="w-12 h-12 rounded-full  flex items-center justify-center mr-3">
+                  <Image
+                    src="/logo.jpg"
+                    alt="Zain Turf"
+                    className="rounded-full w-12 h-12"
+                    width={48}
+                    height={48}
+                  />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold">
@@ -422,7 +432,7 @@ export default function Home() {
                 </div>
               </div>
               <p className="text-gray-400 mb-4">
-                Premium football turf facility in Parbhani offering
+                Premium Turf Playground facility in Parbhani offering
                 FIFA-approved playing surfaces for both casual and competitive
                 matches.
               </p>

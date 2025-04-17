@@ -1,6 +1,6 @@
 export const TURF_DETAILS = {
   name: "Zain Turf",
-  description: "Premium football turf with professional-grade artificial grass and modern facilities",
+  description: "Premium Turf Playground with professional-grade artificial grass and modern facilities",
   pricePerHour: 1000,
   advancePercentage: 50,
   operatingHours: {

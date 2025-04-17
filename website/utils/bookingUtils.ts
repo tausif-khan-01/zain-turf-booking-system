@@ -1,0 +1,60 @@
+import { format } from "date-fns";
+
+// Constants
+export const HOURLY_RATE = 600;
+export const BOOKING_FEE = 100;
+
+// Types
+export interface SelectedSlotInfo {
+  id: number;
+  startTime: string;
+}
+
+export interface FormData {
+  name: string;
+  phone: string;
+  players: string;
+  notes: string;
+}
+
+// Utility Functions
+export const calculateTotalPrice = (
+  selectedSlots: SelectedSlotInfo[],
+  numeric = false,
+  onlineOnly = false
+) => {
+  const numberOfSlots = selectedSlots.length;
+  if (numberOfSlots === 0) return numeric ? 0 : "₹0";
+
+  if (onlineOnly) {
+    return numeric
+      ? BOOKING_FEE * numberOfSlots
+      : `₹${BOOKING_FEE * numberOfSlots}`;
+  }
+
+  const total = HOURLY_RATE * numberOfSlots;
+  return numeric ? total : `₹${total}`;
+};
+
+export const calculateRemainingAmount = (
+  selectedSlots: SelectedSlotInfo[],
+  numeric = false
+) => {
+  const totalPrice = calculateTotalPrice(selectedSlots, true) as number;
+  const onlinePayment = calculateTotalPrice(selectedSlots, true, true) as number;
+  const remainingAmount = totalPrice - onlinePayment;
+  return numeric ? remainingAmount : `₹${remainingAmount}`;
+};
+
+export const generateBookingId = () => {
+  return `ZT-${Date.now()
+    .toString(36)
+    .toUpperCase()}-${Math.random()
+    .toString(36)
+    .substring(2, 7)
+    .toUpperCase()}`;
+};
+
+export const formatBookingDate = (date: string) => {
+  return format(new Date(date), "MMMM d, yyyy");
+}; 

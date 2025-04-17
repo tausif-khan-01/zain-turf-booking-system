@@ -112,11 +112,11 @@ export default function BookingConfirmation() {
           <div className="bg-primary p-4 text-white">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <div className="w-12 h-12 mr-3 rounded-full   bg-white flex items-center justify-center">
+                <div className="  mr-3  h-full   flex items-center justify-center">
                   <Image
-                    src="/placeholder.svg?height=48&width=48"
+                    src="/logo.jpg"
                     alt="Zain Turf Logo"
-                    className="w-10 h-10 object-contain"
+                    className="h-12  "
                     width={48}
                     height={48}
                   />
