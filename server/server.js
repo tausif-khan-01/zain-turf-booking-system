@@ -18,6 +18,9 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+// Trust proxy configuration
+app.set('trust proxy', 1); // trust first proxy
+
 // Parse CORS origins from environment variable
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map((origin) => origin.trim())
