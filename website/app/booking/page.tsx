@@ -148,8 +148,8 @@ export default function BookingPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:gap-8">
-          <div>
+        <div className="grid grid-cols-1 gap-4 md:flex md:items-start sm:gap-8">
+          <div className="w-full">
             <Card className="border-none shadow-lg rounded-none sm:rounded-lg">
               <BookingSteps currentStep={bookingStep} />
 

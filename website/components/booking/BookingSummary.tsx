@@ -1,6 +1,10 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  calculateTotalPrice,
+  formatBookingDate,
+  type SelectedSlotInfo,
+} from "@/utils/bookingUtils";
 import { getSlotEndTime } from "@/utils/getEndTime";
-import { formatBookingDate, calculateTotalPrice, type SelectedSlotInfo } from "@/utils/bookingUtils";
 
 interface BookingSummaryProps {
   date: string;
@@ -13,10 +17,7 @@ export function BookingSummary({ date, selectedSlots }: BookingSummaryProps) {
     startTime &&
     getSlotEndTime(selectedSlots?.[0]?.startTime, selectedSlots.length);
   return (
-    <Card className="border-none shadow-lg rounded-none sm:rounded-lg">
-      <CardHeader>
-        <CardTitle>Booking Summary</CardTitle>
-      </CardHeader>
+    <Card className="border-none shadow-lg rounded-none sm:rounded-lg min-w-xs">
       <CardContent className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Booking Summary</h3>
@@ -24,9 +25,7 @@ export function BookingSummary({ date, selectedSlots }: BookingSummaryProps) {
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Date</span>
-            <span className="font-medium">
-              {formatBookingDate(date)}
-            </span>
+            <span className="font-medium">{formatBookingDate(date)}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Time Slots</span>
