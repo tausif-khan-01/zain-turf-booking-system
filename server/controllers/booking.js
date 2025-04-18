@@ -1,12 +1,10 @@
+import crypto from "crypto";
 import { format } from "date-fns";
 import Razorpay from "razorpay";
 import config from "../constants/config.js";
-import { TURF_DETAILS } from "../constants/turf.js";
 import Booking from "../models/Booking.js";
-import { formatTime, generateTimeSlots } from "../utility/timeSlots.js";
-import { newBookingId } from "../utility/newBookingId.js";
-import crypto from "crypto";
 import { calculateBookingAmount } from "../utility/booking-calc.js";
+import { newBookingId } from "../utility/newBookingId.js";
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -17,9 +15,7 @@ const razorpay = new Razorpay({
 // Get available slots for a date
 export const getAvailableSlots = async (req, res) => {
   try {
-    const { date: dateQuery } = req.query;
-
-    const date = format(new Date(dateQuery), "yyyy-MM-dd");
+    const { date } = req.query;
 
     if (!date) {
       return res.status(400).json({
@@ -28,41 +24,14 @@ export const getAvailableSlots = async (req, res) => {
       });
     }
 
-    if (TURF_DETAILS.status === "maintenance") {
-      return res.status(400).json({
-        status: "error",
-        message: "Turf is not available for booking",
-      });
-    }
-
-    // Generate all possible slots
-    const allSlots = generateTimeSlots(
-      TURF_DETAILS.operatingHours.start,
-      TURF_DETAILS.operatingHours.end
-    );
-
     // Get booked slots
     const bookedSlots = await Booking.find({
       date: date,
-      status: { $ne: "cancelled" },
-    }).select("startTime");
-
-    const bookedTimes = bookedSlots.map((slot) => slot.startTime);
-
-    // Filter available slots
-    const availableSlots = allSlots.filter(
-      (slot) => !bookedTimes.includes(slot.start)
-    );
+    }).select("startTime duration");
 
     res.status(200).json({
       status: "success",
-      data: {
-        slots: availableSlots.map((slot) => ({
-          start: formatTime(slot.start),
-          end: formatTime(slot.end),
-        })),
-        pricePerHour: TURF_DETAILS.pricePerHour,
-      },
+      bookedSlots,
     });
   } catch (error) {
     res.status(400).json({
