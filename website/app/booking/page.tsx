@@ -131,7 +131,7 @@ export default function BookingPage() {
 
   return (
     <main className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-0 sm:px-4">
+      <div className="container mx-auto px-0! sm:px-4">
         <div className="p-4">
           <Link
             href="/"
@@ -144,7 +144,7 @@ export default function BookingPage() {
             Book Your Slot
           </h1>
           <p className="text-gray-600 mt-2">
-            Select your preferred date and time to book the football turf
+            Select your preferred date and time to book the turf
           </p>
         </div>
 

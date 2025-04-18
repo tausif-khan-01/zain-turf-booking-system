@@ -18,14 +18,16 @@ export const metadata: Metadata = {
   description:
     "Book your slot at Zain Turf, featuring professional-grade artificial grass, floodlights, and modern facilities in Parbhani, Maharashtra, India.",
   keywords: [
-    "football turf",
+    "turf",
     "turf booking",
     "sports facility",
     "artificial grass",
     "Play Ground",
     "sports complex",
     "turf rental",
-    "football pitch",
+    "best turf in parbhani",
+    "turf parbhani",
+    "turf booking parbhani",
     "sports booking",
     "turf management",
     "Zain Turf",

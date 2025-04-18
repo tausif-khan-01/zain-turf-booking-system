@@ -142,10 +142,30 @@ export function TimeSlotSelector({
           >
             <TabsList className="grid w-full grid-cols-5">
               <TabsTrigger value="all">All</TabsTrigger>
-              <TabsTrigger value="early-morning">Early Morning</TabsTrigger>
-              <TabsTrigger value="morning">Morning</TabsTrigger>
-              <TabsTrigger value="afternoon">Afternoon</TabsTrigger>
-              <TabsTrigger value="evening">Evening</TabsTrigger>
+              <TabsTrigger value="early-morning" className="hidden sm:block">
+                Early Morning
+              </TabsTrigger>
+              <TabsTrigger value="early-morning" className="sm:hidden">
+                E.M
+              </TabsTrigger>
+              <TabsTrigger value="morning" className="hidden sm:block">
+                Morning
+              </TabsTrigger>
+              <TabsTrigger value="morning" className="sm:hidden">
+                Morn
+              </TabsTrigger>
+              <TabsTrigger value="afternoon" className="hidden sm:block">
+                Afternoon
+              </TabsTrigger>
+              <TabsTrigger value="afternoon" className="sm:hidden">
+                Noon
+              </TabsTrigger>
+              <TabsTrigger value="evening" className="hidden sm:block">
+                Evening
+              </TabsTrigger>
+              <TabsTrigger value="evening" className="sm:hidden">
+                Eve
+              </TabsTrigger>
             </TabsList>
           </Tabs>
         </div>
@@ -174,7 +194,7 @@ export function TimeSlotSelector({
               className={cn(
                 "border rounded-md p-2 sm:p-3 cursor-pointer transition-all",
                 slot.available
-                  ? selectedSlots.some(s => s.id === slot.id)
+                  ? selectedSlots.some((s) => s.id === slot.id)
                     ? "border-primary bg-primary/10"
                     : "hover:border-primary hover:bg-primary/5"
                   : "cursor-not-allowed bg-destructive/10 border-destructive",
@@ -189,7 +209,7 @@ export function TimeSlotSelector({
                     {slot.time} - {getSlotEndTime(slot.time, 1)}
                   </span>
                 </div>
-                {selectedSlots.some(s => s.id === slot.id) && (
+                {selectedSlots.some((s) => s.id === slot.id) && (
                   <CheckCircle className="w-4 h-4 text-primary" />
                 )}
               </div>
