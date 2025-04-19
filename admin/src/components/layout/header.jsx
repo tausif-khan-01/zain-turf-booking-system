@@ -1,4 +1,4 @@
-import { Bell, ChevronDown, Settings, LogOut } from "lucide-react";
+import { Bell, ChevronDown, Settings, LogOut, ScanQrCode } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SidebarTrigger } from "@/components/ui/sidebar";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Separator } from "../ui/separator";
 
 function AdminHeader() {
@@ -90,6 +90,11 @@ function AdminHeader() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu> */}
+        <Button variant="outline" size="icon">
+          <Link to="/scan">
+            <ScanQrCode />
+          </Link>
+        </Button>
       </div>
     </header>
   );

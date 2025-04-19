@@ -3,8 +3,8 @@ import Layout from "./components/layout/Layout";
 import BookingDetails from "./pages/bookings/booking-details";
 import Bookings from "./pages/bookings/bookings";
 import Dashboard from "./pages/dashboard";
-import Expenses from "./pages/expenses";
-
+import Expenses from "./pages/expenses"; 
+import ScanPage from "./pages/scan";
 function App() {
   return (
     <Routes>
@@ -15,6 +15,7 @@ function App() {
           <Route path="/bookings" element={<Bookings />} />
           <Route path="/bookings/:id" element={<BookingDetails />} />
         </Route>
+        <Route path="/scan" element={<ScanPage />} />
         <Route path="/expenses" element={<Expenses />} />
       </Route>
     </Routes>
