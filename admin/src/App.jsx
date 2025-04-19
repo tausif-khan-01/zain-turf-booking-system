@@ -1,9 +1,9 @@
 import { Route, Routes } from "react-router-dom";
 import Layout from "./components/layout/Layout";
-import BookingDetails from "./pages/bookings/booking-details";
+import BookingDetailsPage from "./pages/bookings/booking-details";
 import Bookings from "./pages/bookings/bookings";
 import Dashboard from "./pages/dashboard";
-import Expenses from "./pages/expenses"; 
+import Expenses from "./pages/expenses";
 import ScanPage from "./pages/scan";
 function App() {
   return (
@@ -13,7 +13,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/bookings">
           <Route path="/bookings" element={<Bookings />} />
-          <Route path="/bookings/:id" element={<BookingDetails />} />
+          <Route path="/bookings/:id" element={<BookingDetailsPage />} />
         </Route>
         <Route path="/scan" element={<ScanPage />} />
         <Route path="/expenses" element={<Expenses />} />
