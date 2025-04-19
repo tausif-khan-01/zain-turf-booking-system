@@ -215,7 +215,7 @@ export default function Dashboard() {
               <CardTitle>Recent Bookings</CardTitle>
               <CardDescription>Latest booking activity</CardDescription>
             </div>
-            <Link to="/admin/bookings">
+            <Link to="/bookings">
               <Button variant="ghost" size="sm" className="gap-1">
                 View All
                 <ChevronRight className="h-4 w-4" />
@@ -275,7 +275,7 @@ export default function Dashboard() {
               <CardTitle>Today's Schedule</CardTitle>
               <CardDescription>Upcoming bookings for today</CardDescription>
             </div>
-            <Link to="/admin/bookings">
+            <Link to="/bookings">
               <Button variant="ghost" size="sm" className="gap-1">
                 Full Schedule
                 <ChevronRight className="h-4 w-4" />

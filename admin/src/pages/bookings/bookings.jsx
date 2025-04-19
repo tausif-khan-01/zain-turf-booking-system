@@ -193,7 +193,7 @@ export default function Bookings() {
         </TabsList>
       </Tabs>
 
-      <Card>
+      <Card className={"rounded md:rounded-md"}>
         <CardHeader className="pb-3">
           <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
             <div className="relative w-full md:w-96">
@@ -241,7 +241,7 @@ export default function Bookings() {
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className={"p-0 md:p-4"}>
           {isMobile ? (
             // Mobile card view
             <div className="space-y-4">
@@ -251,8 +251,8 @@ export default function Bookings() {
                 </div>
               ) : (
                 filteredBookings.map((booking) => (
-                  <Link to={`/admin/bookings/${booking.id}`} key={booking.id}>
-                    <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
+                  <Link to={`/bookings/${booking.id}`} key={booking.id}>
+                    <Card className="hover:bg-gray-50 transition-colors cursor-pointer rounded-none border-x-0">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
@@ -400,7 +400,7 @@ export default function Bookings() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem asChild>
-                                <Link to={`/admin/bookings/${booking.id}`}>
+                                <Link to={`/bookings/${booking.id}`}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Details
                                 </Link>
