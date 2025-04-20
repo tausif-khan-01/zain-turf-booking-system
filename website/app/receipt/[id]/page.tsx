@@ -15,9 +15,9 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { QRCodeCanvas } from "qrcode.react";
 import { useEffect, useRef, useState } from "react";
+import { use } from "react";
 
 interface Transaction {
   amount: number;
@@ -59,13 +59,17 @@ interface BookingData {
   updatedAt: string;
 }
 
-export default function BookingConfirmation() {
+export default function BookingConfirmation({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const [bookingData, setBookingData] = useState<BookingData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const receiptRef = useRef<HTMLDivElement>(null);
-  const searchParams = useSearchParams();
-  const bookingId = searchParams.get("bookingId");
+
+  const bookingId = use(params).id;
 
   useEffect(() => {
     const fetchBookingData = async () => {
@@ -76,7 +80,7 @@ export default function BookingConfirmation() {
       }
 
       try {
-        const response = await api.get(`/booking/${bookingId}`);
+        const response = await api.get(`/booking/receipt/${bookingId}`);
         if (response.status !== 200) {
           throw new Error("Failed to fetch booking data");
         }

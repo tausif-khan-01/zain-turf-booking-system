@@ -355,3 +355,27 @@ export const updateBookingStatus = async (req, res) => {
     });
   }
 };
+
+// get receipt
+export const getReceipt = async (req, res) => {
+  try {
+    const { id: bookingId } = req.params;
+    const booking = await Booking.findOne({ bookingId });
+    if (!booking) {
+      return res.status(404).json({
+        status: "error",
+        message: "Booking not found",
+      });
+    }
+
+    res.status(200).json({
+      status: "success",
+      booking,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};

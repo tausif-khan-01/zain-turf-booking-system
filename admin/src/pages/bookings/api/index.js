@@ -33,3 +33,19 @@ export const getBookingFinanceInfo = async (bookingId) => {
     throw error.response?.data || error.message;
   }
 };
+
+
+
+// Hi *{{1}}*,
+// Thank you for choosing *Zain Sports Resort & Turf*! Your booking has been confirmed.
+
+// 📅 *Date*: {{2}}
+// ⏰ *Time*: {{3}}
+// 💰 *Total*: ₹{{4}}
+// 💸 *Advance Paid*: ₹{{5}}
+// 🧾 *Remaining*: *₹{{6}}*
+
+// 📍 Madhav nagari, Gangakhed Rd, Parbhani, Maharashtra 431401
+// 📞 Contact: +91-8107870787
+
+// We look forward to seeing you on the field!

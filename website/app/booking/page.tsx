@@ -126,7 +126,7 @@ export default function BookingPage() {
   };
 
   const handleSubmit = (bookingId: string) => {
-    router.push(`/booking/confirmation?bookingId=${bookingId}`);
+    router.push(`/receipt/${bookingId}`);
   };
 
   return (

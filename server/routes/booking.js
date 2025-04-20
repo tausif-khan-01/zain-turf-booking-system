@@ -7,6 +7,7 @@ import {
   getAllBookings,
   updateBookingStatus,
   verifyPaymentAndBook,
+  getReceipt,
 } from "../controllers/booking.js";
 import { protect, authorize } from "../middlewares/auth.js";
 
@@ -30,6 +31,8 @@ router.patch(
 // Get single booking
 router.get("/info/:id", protect, getBookingDetails);
 router.get("/:bookingId", getBookingDetails);
+
+router.get("/receipt/:id", getReceipt);
 
 // Create booking
 // router.post("/", protect, createBooking);
