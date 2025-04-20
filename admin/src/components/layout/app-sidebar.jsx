@@ -1,9 +1,9 @@
 import {
   Calendar,
-  ChevronsUpDown,
   CreditCard,
+  IndianRupee,
   LayoutDashboard,
-  LogOut,
+  LogOut
 } from "lucide-react";
 
 import {
@@ -12,11 +12,10 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
-  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem,
+  SidebarMenuItem
 } from "@/components/ui/sidebar";
 import { NavLink } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
@@ -37,6 +36,11 @@ const menuConfig = {
     {
       title: "Expenses",
       url: "/expenses",
+      icon: IndianRupee,
+    },
+    {
+      title: "Finances",
+      url: "/finances",
       icon: CreditCard,
     },
   ],

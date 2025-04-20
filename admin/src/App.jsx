@@ -4,7 +4,10 @@ import BookingDetailsPage from "./pages/bookings/booking-details";
 import Bookings from "./pages/bookings/bookings";
 import Dashboard from "./pages/dashboard";
 import ScanPage from "./pages/scan";
+
 import ExpensesPage from "./pages/expenses/expenses";
+import FinancesPage from "./pages/finances/finances";
+
 function App() {
   return (
     <Routes>
@@ -17,6 +20,7 @@ function App() {
         </Route>
         <Route path="/scan" element={<ScanPage />} />
         <Route path="/expenses" element={<ExpensesPage />} />
+        <Route path="/finances" element={<FinancesPage />} />
       </Route>
     </Routes>
   );
