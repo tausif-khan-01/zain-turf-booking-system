@@ -7,6 +7,7 @@ import App from "./App.jsx";
 import "./index.css";
 import { ThemeProvider } from "./components/theme-provider.jsx";
 import { STALE_TIMES } from "./lib/constants.js";
+import { Toaster } from "@/components/ui/sonner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,6 +28,7 @@ createRoot(document.getElementById("root")).render(
         <BrowserRouter>
           <App />
         </BrowserRouter>
+        <Toaster />
       </QueryClientProvider>
     </ThemeProvider>
   </StrictMode>

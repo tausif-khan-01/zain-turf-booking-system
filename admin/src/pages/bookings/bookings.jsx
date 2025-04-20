@@ -38,6 +38,7 @@ import {
   Eye,
   Filter,
   MoreHorizontal,
+  RefreshCcw,
   Search,
   Trash2,
 } from "lucide-react";
@@ -82,6 +83,7 @@ export default function Bookings() {
     isLoading,
     isError,
     error,
+    refetch,
   } = useQuery({
     queryKey: ["bookings", queryParams],
     queryFn: () => getAllBookings(queryParams),
@@ -191,17 +193,27 @@ export default function Bookings() {
       </div>
 
       <Card className={"rounded md:rounded-md"}>
-        <CardHeader className="">
+        <CardHeader className="p-1.5 md:p-4">
           <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-              <Input
-                type="search"
-                placeholder="Search by name, ID, or phone..."
-                className="w-full pl-9"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
+            <div className="flex items-center gap-2">
+              <div className="relative w-full md:w-96">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+                <Input
+                  type="search"
+                  placeholder="Search by name, ID, or phone..."
+                  className="w-full pl-9"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </div>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={refetch}
+                disabled={isLoading}
+              >
+                <RefreshCcw className="h-4 w-4" />
+              </Button>
             </div>
             <div className="flex flex-wrap gap-2">
               <Select value={statusFilter} onValueChange={setStatusFilter}>
