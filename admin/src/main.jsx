@@ -25,9 +25,7 @@ createRoot(document.getElementById("root")).render(
     <ThemeProvider>
       <QueryClientProvider client={queryClient}>
         <BrowserRouter>
-          <SidebarProvider>
-            <App />
-          </SidebarProvider>
+          <App />
         </BrowserRouter>
       </QueryClientProvider>
     </ThemeProvider>

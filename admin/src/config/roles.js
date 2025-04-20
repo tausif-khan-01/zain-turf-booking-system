@@ -1,0 +1,56 @@
+export const ROLES = {
+  ADMIN: "admin",
+  MANAGER: "manager",
+};
+
+export const PERMISSIONS = {
+  // Dashboard
+  VIEW_DASHBOARD: "view:dashboard",
+  
+  // Bookings
+  VIEW_BOOKINGS: "view:bookings",
+  CREATE_BOOKINGS: "create:bookings",
+  EDIT_BOOKINGS: "edit:bookings",
+  DELETE_BOOKINGS: "delete:bookings",
+  
+  // Finances
+  VIEW_FINANCES: "view:finances",
+  MANAGE_FINANCES: "manage:finances",
+  
+  // Expenses
+  VIEW_EXPENSES: "view:expenses",
+  MANAGE_EXPENSES: "manage:expenses",
+  
+  // Users
+  VIEW_USERS: "view:users",
+  MANAGE_USERS: "manage:users",
+  
+  // Settings
+  MANAGE_SETTINGS: "manage:settings",
+};
+
+export const ROLE_PERMISSIONS = {
+  [ROLES.ADMIN]: [
+    PERMISSIONS.VIEW_DASHBOARD,
+    PERMISSIONS.VIEW_BOOKINGS,
+    PERMISSIONS.CREATE_BOOKINGS,
+    PERMISSIONS.EDIT_BOOKINGS,
+    PERMISSIONS.DELETE_BOOKINGS,
+    PERMISSIONS.VIEW_FINANCES,
+    PERMISSIONS.MANAGE_FINANCES,
+    PERMISSIONS.VIEW_EXPENSES,
+    PERMISSIONS.MANAGE_EXPENSES,
+    PERMISSIONS.VIEW_USERS,
+    PERMISSIONS.MANAGE_USERS,
+    PERMISSIONS.MANAGE_SETTINGS,
+  ],
+  [ROLES.MANAGER]: [
+    PERMISSIONS.VIEW_DASHBOARD,
+    PERMISSIONS.VIEW_BOOKINGS,
+    PERMISSIONS.CREATE_BOOKINGS,
+    PERMISSIONS.EDIT_BOOKINGS,
+    PERMISSIONS.VIEW_FINANCES,
+    PERMISSIONS.VIEW_EXPENSES,
+    PERMISSIONS.MANAGE_EXPENSES,
+  ],
+}; 

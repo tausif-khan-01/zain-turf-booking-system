@@ -3,7 +3,7 @@ import {
   CreditCard,
   IndianRupee,
   LayoutDashboard,
-  LogOut
+  LogOut,
 } from "lucide-react";
 
 import {
@@ -15,8 +15,9 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
-  SidebarMenuItem
+  SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { useAuth } from "@/contexts/auth-context";
 import { NavLink } from "react-router-dom";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
@@ -47,13 +48,13 @@ const menuConfig = {
   footerMenu: [
     {
       title: "Logout",
-      url: "/logout",
       icon: LogOut,
     },
   ],
 };
 
 export function AppSidebar() {
+  const { logout } = useAuth();
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader className="h-16 border-b border-sidebar-border">
@@ -105,18 +106,14 @@ export function AppSidebar() {
 
       <SidebarFooter>
         <SidebarMenu>
-          {menuConfig.footerMenu.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <NavLink to={item.url}>
-                {({ isActive }) => (
-                  <SidebarMenuButton isActive={isActive}>
-                    <item.icon />
-                    <span>{item.title}</span>
-                  </SidebarMenuButton>
-                )}
-              </NavLink>
-            </SidebarMenuItem>
-          ))}
+          {/* {menuConfig.footerMenu.map((item) => ( */}
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={logout}>
+              <LogOut />
+              <span>Logout</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          {/* ))} */}
         </SidebarMenu>
       </SidebarFooter>
     </Sidebar>

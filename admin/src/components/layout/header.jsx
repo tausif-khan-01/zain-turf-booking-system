@@ -12,6 +12,7 @@ import {
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Link, useLocation } from "react-router-dom";
 import { Separator } from "../ui/separator";
+import { ModeToggle } from "../ModeToggle";
 
 function AdminHeader() {
   const location = useLocation();
@@ -95,6 +96,7 @@ function AdminHeader() {
             <ScanQrCode />
           </Link>
         </Button>
+        <ModeToggle />
       </div>
     </header>
   );

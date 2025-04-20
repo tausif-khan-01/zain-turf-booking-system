@@ -1,5 +1,12 @@
 import crypto from "crypto";
-import { format } from "date-fns";
+import {
+  format,
+  startOfDay,
+  endOfDay,
+  startOfWeek,
+  endOfWeek,
+  addDays,
+} from "date-fns";
 import Razorpay from "razorpay";
 import config from "../constants/config.js";
 import Booking from "../models/Booking.js";
@@ -178,21 +185,105 @@ export const getBookingDetails = async (req, res) => {
 // Get all bookings (admin/manager only)
 export const getAllBookings = async (req, res) => {
   try {
-    const { date, status } = req.query;
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      status,
+      dateFilter,
+      startDate,
+      endDate,
+    } = req.query;
+
+    // Build query
     const query = {};
 
-    if (date) {
-      query.date = new Date(date);
-    }
+    // Status filter
     if (status) {
       query.status = status;
     }
 
-    const bookings = await Booking.find(query).sort({ date: 1, startTime: 1 });
+    // Date range filter
+    if (dateFilter) {
+      const today = new Date();
+      switch (dateFilter) {
+        case "today":
+          query.date = {
+            $gte: startOfDay(today),
+            $lte: endOfDay(today),
+          };
+          break;
+        case "tomorrow":
+          const tomorrow = addDays(today, 1);
+          query.date = {
+            $gte: startOfDay(tomorrow),
+            $lte: endOfDay(tomorrow),
+          };
+          break;
+        case "thisWeek":
+          query.date = {
+            $gte: startOfWeek(today),
+            $lte: endOfWeek(today),
+          };
+          break;
+        case "custom":
+          if (startDate && endDate) {
+            query.date = {
+              $gte: startOfDay(new Date(startDate)),
+              $lte: endOfDay(new Date(endDate)),
+            };
+          }
+          break;
+      }
+    }
+
+    // Search filter
+    if (search) {
+      query.$or = [
+        { "customer.phone": { $regex: search, $options: "i" } },
+        { "customer.name": { $regex: search, $options: "i" } },
+        { bookingId: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Get total count for pagination
+    const total = await Booking.countDocuments(query);
+
+    // Get paginated results
+    const bookings = await Booking.find(query)
+      .sort({ createdAt: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    // Transform the data to match the requested format
+    const formattedBookings = bookings.map((booking) => ({
+      bookingId: booking.bookingId,
+      name: booking.customer.name,
+      contact: booking.customer.phone,
+      date: format(new Date(booking.date), "yyyy-MM-dd"),
+      startTime: booking.startTime,
+      duration: booking.duration,
+      amount: booking.amount.totalAmount,
+      paid:
+        booking.amount?.transactions?.reduce(
+          (sum, transaction) => sum + transaction.amount,
+          0
+        ) || 0,
+      remaining: booking.amount.remainingAmount,
+      status: booking.status,
+    }));
 
     res.status(200).json({
       status: "success",
-      data: bookings,
+      data: {
+        bookings: formattedBookings,
+        pagination: {
+          total,
+          page: parseInt(page),
+          limit: parseInt(limit),
+          pages: Math.ceil(total / limit),
+        },
+      },
     });
   } catch (error) {
     res.status(400).json({

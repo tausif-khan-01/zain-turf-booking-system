@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import useMediaQuery from "@/hooks/use-media-query";
+import { getAllBookings } from "@/pages/bookings/api";
 import {
   CalendarRange,
   Edit,
@@ -42,138 +43,82 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
-
-// Mock data for bookings
-const bookings = [
-  {
-    id: "ZT-1234",
-    customer: "John Doe",
-    phone: "+91 98765 43210",
-    date: "Jul 24, 2023",
-    time: "5:00 PM - 7:00 PM",
-    duration: "2 hours",
-    amount: 1200,
-    paid: 200,
-    remaining: 1000,
-    status: "confirmed",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: "ZT-1235",
-    customer: "Jane Smith",
-    phone: "+91 98765 43211",
-    date: "Jul 25, 2023",
-    time: "6:00 PM - 8:00 PM",
-    duration: "2 hours",
-    amount: 1200,
-    paid: 200,
-    remaining: 1000,
-    status: "pending",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: "ZT-1236",
-    customer: "Mike Johnson",
-    phone: "+91 98765 43212",
-    date: "Jul 25, 2023",
-    time: "7:00 PM - 9:00 PM",
-    duration: "2 hours",
-    amount: 1200,
-    paid: 1200,
-    remaining: 0,
-    status: "completed",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: "ZT-1237",
-    customer: "Sarah Williams",
-    phone: "+91 98765 43213",
-    date: "Jul 26, 2023",
-    time: "8:00 PM - 10:00 PM",
-    duration: "2 hours",
-    amount: 1200,
-    paid: 200,
-    remaining: 1000,
-    status: "confirmed",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: "ZT-1238",
-    customer: "David Brown",
-    phone: "+91 98765 43214",
-    date: "Jul 26, 2023",
-    time: "5:00 PM - 7:00 PM",
-    duration: "2 hours",
-    amount: 1200,
-    paid: 0,
-    remaining: 1200,
-    status: "cancelled",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: "ZT-1239",
-    customer: "Emily Davis",
-    phone: "+91 98765 43215",
-    date: "Jul 27, 2023",
-    time: "6:00 PM - 8:00 PM",
-    duration: "2 hours",
-    amount: 1200,
-    paid: 200,
-    remaining: 1000,
-    status: "confirmed",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: "ZT-1240",
-    customer: "Michael Wilson",
-    phone: "+91 98765 43216",
-    date: "Jul 27, 2023",
-    time: "7:00 PM - 9:00 PM",
-    duration: "2 hours",
-    amount: 1200,
-    paid: 200,
-    remaining: 1000,
-    status: "pending",
-    avatar: "/placeholder.svg",
-  },
-  {
-    id: "ZT-1241",
-    customer: "Jessica Taylor",
-    phone: "+91 98765 43217",
-    date: "Jul 28, 2023",
-    time: "8:00 PM - 10:00 PM",
-    duration: "2 hours",
-    amount: 1200,
-    paid: 1200,
-    remaining: 0,
-    status: "completed",
-    avatar: "/placeholder.svg",
-  },
-];
+import { useQuery } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { format } from "date-fns";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState("all");
+  const [page, setPage] = useState(1);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  // Filter bookings based on search query and filters
-  const filteredBookings = bookings.filter((booking) => {
-    // Search filter
-    const matchesSearch =
-      booking.customer.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      booking.phone.includes(searchQuery);
+  // Query parameters
+  const queryParams = {
+    page,
+    limit: 10,
+    search: searchQuery || undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    dateFilter: dateFilter !== "all" ? dateFilter : undefined,
+  };
 
-    // Status filter
-    const matchesStatus =
-      statusFilter === "all" || booking.status === statusFilter;
-
-    // Date filter (simplified for demo)
-    const matchesDate = dateFilter === "all" || true;
-
-    return matchesSearch && matchesStatus && matchesDate;
+  // Fetch bookings using react-query
+  const {
+    data: bookingsData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery({
+    queryKey: ["bookings", queryParams],
+    queryFn: () => getAllBookings(queryParams),
   });
+
+  // Loading skeleton component
+  const LoadingSkeleton = () => (
+    <div className="space-y-4">
+      {Array.from({ length: 5 }).map((_, index) => (
+        <Card
+          key={index}
+          className="hover:bg-gray-50 transition-colors cursor-pointer rounded-none border-x-0"
+        >
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-8 w-8 rounded-full" />
+                <div>
+                  <Skeleton className="h-4 w-24" />
+                  <Skeleton className="h-3 w-32 mt-1" />
+                </div>
+              </div>
+              <Skeleton className="h-6 w-20" />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-24 mt-1" />
+              </div>
+              <div>
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-20 mt-1" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+
+  if (isError) {
+    return (
+      <Alert variant="destructive" className="mt-4">
+        <AlertDescription>
+          Error loading bookings: {error.message}
+        </AlertDescription>
+      </Alert>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -234,43 +179,41 @@ export default function Bookings() {
                   <SelectItem value="all">All Dates</SelectItem>
                   <SelectItem value="today">Today</SelectItem>
                   <SelectItem value="tomorrow">Tomorrow</SelectItem>
-                  <SelectItem value="week">This Week</SelectItem>
-                  <SelectItem value="month">This Month</SelectItem>
+                  <SelectItem value="thisWeek">This Week</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
         </CardHeader>
         <CardContent className={"p-0 md:p-4"}>
-          {isMobile ? (
+          {isLoading ? (
+            <LoadingSkeleton />
+          ) : isMobile ? (
             // Mobile card view
             <div className="space-y-4">
-              {filteredBookings.length === 0 ? (
+              {bookingsData?.data.bookings.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   No bookings found
                 </div>
               ) : (
-                filteredBookings.map((booking) => (
-                  <Link to={`/bookings/${booking.id}`} key={booking.id}>
+                bookingsData?.data.bookings.map((booking) => (
+                  <Link
+                    to={`/bookings/${booking.bookingId}`}
+                    key={booking.bookingId}
+                  >
                     <Card className="hover:bg-gray-50 transition-colors cursor-pointer rounded-none border-x-0">
                       <CardContent className="p-4">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage
-                                src={booking.avatar || "/placeholder.svg"}
-                                alt={booking.customer}
-                              />
                               <AvatarFallback>
-                                {booking.customer.substring(0, 2)}
+                                {booking.name.substring(0, 2)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">
-                                {booking.customer}
-                              </div>
+                              <div className="font-medium">{booking.name}</div>
                               <div className="text-xs text-gray-500">
-                                {booking.phone}
+                                {booking.contact}
                               </div>
                             </div>
                           </div>
@@ -292,8 +235,10 @@ export default function Bookings() {
                         <div className="grid grid-cols-2 gap-2 text-sm">
                           <div>
                             <div className="text-gray-500">Date & Time</div>
-                            <div>{booking.date}</div>
-                            <div className="text-xs">{booking.time}</div>
+                            <div>
+                              {format(new Date(booking.date), "dd MMM yyyy")}
+                            </div>
+                            <div className="text-xs">{booking.startTime}</div>
                           </div>
                           <div>
                             <div className="text-gray-500">Amount</div>
@@ -326,7 +271,7 @@ export default function Bookings() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredBookings.length === 0 ? (
+                  {bookingsData?.data.bookings.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={6}
@@ -336,36 +281,33 @@ export default function Bookings() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredBookings.map((booking) => (
-                      <TableRow key={booking.id}>
+                    bookingsData?.data.bookings.map((booking) => (
+                      <TableRow key={booking.bookingId}>
                         <TableCell className="font-medium">
-                          {booking.id}
+                          {booking.bookingId}
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <Avatar className="h-8 w-8">
-                              <AvatarImage
-                                src={booking.avatar || "/placeholder.svg"}
-                                alt={booking.customer}
-                              />
                               <AvatarFallback>
-                                {booking.customer.substring(0, 2)}
+                                {booking.name.substring(0, 2)}
                               </AvatarFallback>
                             </Avatar>
                             <div>
-                              <div className="font-medium">
-                                {booking.customer}
-                              </div>
+                              <div className="font-medium">{booking.name}</div>
                               <div className="text-xs text-gray-500">
-                                {booking.phone}
+                                {booking.contact || '12312312'}
                               </div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <div className="font-medium">{booking.date}</div>
+                          <div className="font-medium">
+                            {" "}
+                            {format(new Date(booking.date), "dd MMM yyyy")}
+                          </div>
                           <div className="text-xs text-gray-500">
-                            {booking.time} ({booking.duration})
+                            {booking.startTime} ({booking.duration} hrs)
                           </div>
                         </TableCell>
                         <TableCell>
@@ -400,7 +342,7 @@ export default function Bookings() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem asChild>
-                                <Link to={`/bookings/${booking.id}`}>
+                                <Link to={`/bookings/${booking.bookingId}`}>
                                   <Eye className="mr-2 h-4 w-4" />
                                   View Details
                                 </Link>
@@ -427,14 +369,28 @@ export default function Bookings() {
         </CardContent>
         <CardFooter className="flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Showing <strong>{filteredBookings.length}</strong> of{" "}
-            <strong>{bookings.length}</strong> bookings
+            Showing <strong>{bookingsData?.data.bookings.length || 0}</strong>{" "}
+            of <strong>{bookingsData?.data.pagination.total || 0}</strong>{" "}
+            bookings
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
               Previous
             </Button>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={
+                !bookingsData?.data.pagination.pages ||
+                page >= bookingsData?.data.pagination.pages
+              }
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next
             </Button>
           </div>

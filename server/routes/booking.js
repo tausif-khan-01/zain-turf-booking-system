@@ -28,4 +28,16 @@ router.patch(
   updateBookingStatus
 );
 
+// Get single booking
+router.get("/:id", protect, getBookingDetails);
+
+// Create booking
+// router.post("/", protect, createBooking);
+
+// Update booking
+router.put("/:id", protect, updateBookingStatus);
+
+// Delete booking
+// router.delete("/:id", protect, authorize("admin"), deleteBooking);
+
 export default router;

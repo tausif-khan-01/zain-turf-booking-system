@@ -1,5 +1,5 @@
-import jwt from "jsonwebtoken";
 import User from "../models/User.js";
+import { generateTokens, verifyRefreshToken } from "../utils/jwt.js";
 
 export const register = async (req, res) => {
   try {
@@ -23,10 +23,8 @@ export const register = async (req, res) => {
       mobile,
     });
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
+    // Generate tokens
+    const { accessToken, refreshToken } = generateTokens(user._id);
 
     res.status(201).json({
       status: "success",
@@ -37,7 +35,8 @@ export const register = async (req, res) => {
           email: user.email,
           role: user.role,
         },
-        token,
+        accessToken,
+        refreshToken,
       },
     });
   } catch (error) {
@@ -70,10 +69,8 @@ export const login = async (req, res) => {
       });
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: process.env.JWT_EXPIRES_IN,
-    });
+    // Generate tokens
+    const { accessToken, refreshToken } = generateTokens(user._id);
 
     res.status(200).json({
       status: "success",
@@ -84,7 +81,8 @@ export const login = async (req, res) => {
           email: user.email,
           role: user.role,
         },
-        token,
+        accessToken,
+        refreshToken,
       },
     });
   } catch (error) {
@@ -93,4 +91,64 @@ export const login = async (req, res) => {
       message: error.message,
     });
   }
-}; 
+};
+
+export const logout = (req, res) => {
+  res.status(200).json({
+    status: "success",
+    message: "Logged out successfully",
+  });
+};
+
+export const refreshToken = async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({
+        status: "error",
+        message: "Refresh token not found",
+      });
+    }
+
+    // Verify refresh token
+    const decoded = verifyRefreshToken(refreshToken);
+    if (!decoded) {
+      return res.status(401).json({
+        status: "error",
+        message: "Invalid refresh token",
+      });
+    }
+
+    // Generate new tokens
+    const { accessToken, refreshToken: newRefreshToken } = generateTokens(
+      decoded.id
+    );
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        accessToken,
+        refreshToken: newRefreshToken,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+export const getMe = async (req, res) => {
+  try {
+    console.log("Getting me", req.user);
+    const user = await User.findById(req.user._id);
+    res.status(200).json({ user });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};

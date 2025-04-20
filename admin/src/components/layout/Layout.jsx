@@ -1,11 +1,11 @@
 import { AppSidebar } from "@/components/layout/app-sidebar";
-import { SidebarInset } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { Outlet } from "react-router-dom";
 import AdminHeader from "./header";
 
 export default function Layout() {
   return (
-    <>
+    <SidebarProvider>
       <AppSidebar />
 
       <SidebarInset>
@@ -20,6 +20,6 @@ export default function Layout() {
           <Outlet />
         </main>
       </SidebarInset>
-    </>
+    </SidebarProvider>
   );
 }

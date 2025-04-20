@@ -5,7 +5,9 @@ import cors from "cors";
 import morgan from "morgan";
 import helmet from "helmet";
 import rateLimit from "express-rate-limit";
+import cookieParser from "cookie-parser";
 import connectDB from "./config/db.js";
+import { initializeDefaultUsers } from "./utils/initializeDefaultUsers.js";
 
 // Import routes
 import authRoutes from "./routes/auth.js";
@@ -17,6 +19,9 @@ const app = express();
 
 // Connect to MongoDB
 connectDB();
+
+// Initialize default users if none exist
+initializeDefaultUsers();
 
 // Trust proxy configuration
 app.set('trust proxy', 1); // trust first proxy
@@ -46,6 +51,9 @@ const corsOptions = {
 // Security middleware
 app.use(helmet()); // Adds various HTTP headers for security
 app.use(cors(corsOptions));
+
+// Cookie parser middleware
+app.use(cookieParser());
 
 // Rate limiting
 const limiter = rateLimit({
