@@ -55,6 +55,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import { getSlotEndTime } from "@/lib/getSlotEndtime";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,7 +71,7 @@ export default function Bookings() {
     limit: 10,
     search: searchQuery || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
-    dateFilter: dateFilter !== "all" ? dateFilter : undefined,
+    dateFilter: dateFilter !== "all" ? dateFilter : "all",
     date:
       dateFilter === "custom" && selectedDate
         ? format(selectedDate, "yyyy-MM-dd")
@@ -334,7 +335,13 @@ export default function Bookings() {
                             <div>
                               {format(new Date(booking.date), "dd MMM yyyy")}
                             </div>
-                            <div className="text-xs">{booking.startTime}</div>
+                            <div className="text-xs">
+                              {booking.startTime} -{" "}
+                              {getSlotEndTime(
+                                booking.startTime,
+                                booking.duration
+                              )}
+                            </div>
                           </div>
                           <div>
                             <div className="text-gray-500">Amount</div>
@@ -402,7 +409,11 @@ export default function Bookings() {
                             {format(new Date(booking.date), "MMM dd, yyyy")}
                           </div>
                           <div className="text-xs text-gray-500">
-                            {booking.startTime} ({booking.duration} hrs)
+                            {booking.startTime} -{" "}
+                            {getSlotEndTime(
+                              booking.startTime,
+                              booking.duration
+                            )}
                           </div>
                         </TableCell>
                         <TableCell>

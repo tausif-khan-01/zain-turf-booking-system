@@ -15,7 +15,6 @@ const router = express.Router();
 // Public routes
 router.get("/slots", getAvailableSlots);
 // router.post("/", createBooking);
-router.get("/:bookingId", getBookingDetails);
 router.post("/create-order", createOrder);
 router.post("/verify-payment-and-book", verifyPaymentAndBook);
 
@@ -29,7 +28,8 @@ router.patch(
 );
 
 // Get single booking
-router.get("/:id", protect, getBookingDetails);
+router.get("/info/:id", protect, getBookingDetails);
+router.get("/:bookingId", getBookingDetails);
 
 // Create booking
 // router.post("/", protect, createBooking);

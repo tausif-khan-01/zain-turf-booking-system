@@ -19,7 +19,7 @@ export function BookingHeader({ bookingId }) {
           <p className="text-muted-foreground">Manage booking {bookingId}</p>
         </div>
       </div>
-      <div className="flex items-center gap-2">
+      {/* <div className="flex items-center gap-2">
         <Button variant="outline" size="sm">
           <Edit className="mr-2 h-4 w-4" />
           Edit
@@ -28,7 +28,7 @@ export function BookingHeader({ bookingId }) {
           <Trash2 className="mr-2 h-4 w-4" />
           Cancel Booking
         </Button>
-      </div>
+      </div> */}
     </div>
   );
 } 

@@ -6,6 +6,8 @@ import {
   startOfWeek,
   endOfWeek,
   addDays,
+  startOfMonth,
+  endOfMonth,
 } from "date-fns";
 import Razorpay from "razorpay";
 import config from "../constants/config.js";
@@ -160,7 +162,7 @@ export const verifyPaymentAndBook = async (req, res) => {
 // get booking details
 export const getBookingDetails = async (req, res) => {
   try {
-    const { bookingId } = req.params;
+    const { id: bookingId } = req.params;
 
     const booking = await Booking.findOne({ bookingId });
     if (!booking) {
@@ -204,17 +206,20 @@ export const getAllBookings = async (req, res) => {
       query.status = status;
     }
 
-    // Date filter
-    if (date) {
-      // Single date filter
+    // Date filter logic
+    if (dateFilter === "all") {
+      // Show all dates - don't add date to query
+      // query.date will be undefined, which means no date filtering
+    } else if (dateFilter === "custom" && date) {
+      // Custom filter with specific date
       const selectedDate = new Date(date);
       query.date = {
         $gte: startOfDay(selectedDate),
         $lte: endOfDay(selectedDate),
       };
     } else if (dateFilter) {
-      // Date range filter
-      const today = new Date();
+      // Date range filters
+      const today = new Date(date || new Date());
       switch (dateFilter) {
         case "today":
           query.date = {
@@ -235,6 +240,18 @@ export const getAllBookings = async (req, res) => {
             $lte: endOfWeek(today),
           };
           break;
+        case "nextWeek":
+          query.date = {
+            $gte: startOfWeek(addDays(today, 7)),
+            $lte: endOfWeek(addDays(today, 7)),
+          };
+          break;
+        case "thisMonth":
+          query.date = {
+            $gte: startOfMonth(today),
+            $lte: endOfMonth(today),
+          };
+          break;
         case "custom":
           if (startDate && endDate) {
             query.date = {
@@ -244,6 +261,13 @@ export const getAllBookings = async (req, res) => {
           }
           break;
       }
+    } else if (date) {
+      // Single date filter
+      const selectedDate = new Date(date);
+      query.date = {
+        $gte: startOfDay(selectedDate),
+        $lte: endOfDay(selectedDate),
+      };
     }
 
     // Search filter
@@ -295,6 +319,7 @@ export const getAllBookings = async (req, res) => {
       },
     });
   } catch (error) {
+    console.log("❌error: ", error);
     res.status(400).json({
       status: "error",
       message: error.message,

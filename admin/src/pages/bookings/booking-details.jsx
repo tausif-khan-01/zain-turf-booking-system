@@ -51,57 +51,21 @@ const bookingData = {
 
 export default function BookingDetailsPage() {
   const { id } = useParams();
-  const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("cash");
-  const [activeTab, setActiveTab] = useState("details");
-
-  // In a real app, you would fetch the booking data based on the ID
-  const booking = bookingData;
-
-  const handlePaymentSubmit = (e) => {
-    e.preventDefault();
-    // Handle payment submission
-    alert(`Payment of ₹${paymentAmount} recorded via ${paymentMethod}`);
-    setPaymentAmount("");
-  };
-
-  const handlePaymentAmountChange = (e) => {
-    setPaymentAmount(e.target.value);
-  };
-
-  const handlePaymentMethodChange = (value) => {
-    setPaymentMethod(value);
-  };
-
-  const handleTabChange = (value) => {
-    setActiveTab(value);
-  };
 
   return (
     <div className="space-y-6">
       <BookingHeader bookingId={id} />
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          <BookingInfo 
-            booking={booking} 
-            activeTab={activeTab} 
-            onTabChange={handleTabChange} 
-          />
-          <PaymentInfo 
-            booking={booking}
-            paymentAmount={paymentAmount}
-            paymentMethod={paymentMethod}
-            onPaymentAmountChange={handlePaymentAmountChange}
-            onPaymentMethodChange={handlePaymentMethodChange}
-            onPaymentSubmit={handlePaymentSubmit}
-          />
+          <BookingInfo />
+          <PaymentInfo />
         </div>
 
-        <div className="space-y-6">
+        {/* <div className="space-y-6">
           <BookingActions booking={booking} />
           <CustomerInfo booking={booking} />
-        </div>
+        </div> */}
       </div>
     </div>
   );
