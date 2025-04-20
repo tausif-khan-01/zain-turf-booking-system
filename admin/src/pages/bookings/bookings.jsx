@@ -47,11 +47,19 @@ import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { format } from "date-fns";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [dateFilter, setDateFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("today");
+  const [selectedDate, setSelectedDate] = useState();
   const [page, setPage] = useState(1);
   const isMobile = useMediaQuery("(max-width: 768px)");
 
@@ -62,6 +70,10 @@ export default function Bookings() {
     search: searchQuery || undefined,
     status: statusFilter !== "all" ? statusFilter : undefined,
     dateFilter: dateFilter !== "all" ? dateFilter : undefined,
+    date:
+      dateFilter === "custom" && selectedDate
+        ? format(selectedDate, "yyyy-MM-dd")
+        : format(new Date(), "yyyy-MM-dd"),
   };
 
   // Fetch bookings using react-query
@@ -75,8 +87,8 @@ export default function Bookings() {
     queryFn: () => getAllBookings(queryParams),
   });
 
-  // Loading skeleton component
-  const LoadingSkeleton = () => (
+  // Loading skeleton components
+  const MobileSkeleton = () => (
     <div className="space-y-4">
       {Array.from({ length: 5 }).map((_, index) => (
         <Card
@@ -110,6 +122,55 @@ export default function Bookings() {
     </div>
   );
 
+  const DesktopSkeleton = () => (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Booking ID</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Date & Time</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {Array.from({ length: 5 }).map((_, index) => (
+            <TableRow key={index}>
+              <TableCell>
+                <Skeleton className="h-4 w-20" />
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <div>
+                    <Skeleton className="h-4 w-24" />
+                    <Skeleton className="h-3 w-32 mt-1" />
+                  </div>
+                </div>
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-3 w-32 mt-1" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-4 w-20" />
+                <Skeleton className="h-3 w-24 mt-1" />
+              </TableCell>
+              <TableCell>
+                <Skeleton className="h-6 w-20" />
+              </TableCell>
+              <TableCell className="text-right">
+                <Skeleton className="h-8 w-8 rounded-md" />
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+
   if (isError) {
     return (
       <Alert variant="destructive" className="mt-4">
@@ -129,17 +190,8 @@ export default function Bookings() {
         </div>
       </div>
 
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 md:w-auto md:inline-flex">
-          <TabsTrigger value="all">All Bookings</TabsTrigger>
-          <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-          <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="cancelled">Cancelled</TabsTrigger>
-        </TabsList>
-      </Tabs>
-
       <Card className={"rounded md:rounded-md"}>
-        <CardHeader className="pb-3">
+        <CardHeader className="">
           <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
             <div className="relative w-full md:w-96">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
@@ -172,7 +224,7 @@ export default function Bookings() {
                 <SelectTrigger className="w-full md:w-[180px]">
                   <div className="flex items-center gap-2">
                     <CalendarRange className="h-4 w-4" />
-                    <span>Date Range</span>
+                    <span>Date</span>
                   </div>
                 </SelectTrigger>
                 <SelectContent>
@@ -180,14 +232,46 @@ export default function Bookings() {
                   <SelectItem value="today">Today</SelectItem>
                   <SelectItem value="tomorrow">Tomorrow</SelectItem>
                   <SelectItem value="thisWeek">This Week</SelectItem>
+                  <SelectItem value="custom">Custom Date</SelectItem>
                 </SelectContent>
               </Select>
+
+              {dateFilter === "custom" && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full md:w-[180px] justify-start text-left font-normal",
+                        !selectedDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarRange className="mr-2 h-4 w-4" />
+                      {selectedDate
+                        ? format(selectedDate, "PPP")
+                        : "Select date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
           </div>
         </CardHeader>
         <CardContent className={"p-0 md:p-4"}>
           {isLoading ? (
-            <LoadingSkeleton />
+            isMobile ? (
+              <MobileSkeleton />
+            ) : (
+              <DesktopSkeleton />
+            )
           ) : isMobile ? (
             // Mobile card view
             <div className="space-y-4">
@@ -296,15 +380,14 @@ export default function Bookings() {
                             <div>
                               <div className="font-medium">{booking.name}</div>
                               <div className="text-xs text-gray-500">
-                                {booking.contact || '12312312'}
+                                {booking.contact}
                               </div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
                           <div className="font-medium">
-                            {" "}
-                            {format(new Date(booking.date), "dd MMM yyyy")}
+                            {format(new Date(booking.date), "MMM dd, yyyy")}
                           </div>
                           <div className="text-xs text-gray-500">
                             {booking.startTime} ({booking.duration} hrs)
@@ -333,31 +416,11 @@ export default function Bookings() {
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Actions</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem asChild>
-                                <Link to={`/bookings/${booking.bookingId}`}>
-                                  <Eye className="mr-2 h-4 w-4" />
-                                  View Details
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit Booking
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Cancel Booking
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <Button variant="outline" size="icon" asChild>
+                            <Link to={`/bookings/${booking.bookingId}`}>
+                              <Eye className="h-4 w-4" />
+                            </Link>
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))

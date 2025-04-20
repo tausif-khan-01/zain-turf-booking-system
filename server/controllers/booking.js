@@ -193,6 +193,7 @@ export const getAllBookings = async (req, res) => {
       dateFilter,
       startDate,
       endDate,
+      date,
     } = req.query;
 
     // Build query
@@ -203,8 +204,16 @@ export const getAllBookings = async (req, res) => {
       query.status = status;
     }
 
-    // Date range filter
-    if (dateFilter) {
+    // Date filter
+    if (date) {
+      // Single date filter
+      const selectedDate = new Date(date);
+      query.date = {
+        $gte: startOfDay(selectedDate),
+        $lte: endOfDay(selectedDate),
+      };
+    } else if (dateFilter) {
+      // Date range filter
       const today = new Date();
       switch (dateFilter) {
         case "today":
@@ -259,7 +268,7 @@ export const getAllBookings = async (req, res) => {
     const formattedBookings = bookings.map((booking) => ({
       bookingId: booking.bookingId,
       name: booking.customer.name,
-      contact: booking.customer.phone,
+      contact: booking.customer.contact,
       date: format(new Date(booking.date), "yyyy-MM-dd"),
       startTime: booking.startTime,
       duration: booking.duration,
