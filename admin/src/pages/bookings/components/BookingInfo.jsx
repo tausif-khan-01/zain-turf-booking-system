@@ -14,7 +14,8 @@ import { useQuery } from "@tanstack/react-query";
 import { getBookingInfo } from "../api";
 import { format } from "date-fns";
 import { useParams } from "react-router-dom";
-import { getSlotEndTime } from "@/lib/getSlotEndtime";
+import { getSlotEndTime } from "@/lib/getSlotEndTime";
+
 export function BookingInfoSkeleton() {
   return (
     <Card>

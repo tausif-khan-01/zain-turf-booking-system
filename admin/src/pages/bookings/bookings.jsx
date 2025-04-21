@@ -54,8 +54,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { getSlotEndTime } from "@/lib/getSlotEndtime";
+import { cn } from "@/lib/utils"; 
+import { getSlotEndTime } from "@/lib/getSlotEndTime";
 
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");
