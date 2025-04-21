@@ -25,6 +25,8 @@ export const calculateBookingAmount = (duration) => {
   };
 };
 
+console.log("ccalculateBookingAmount(2);onfig: ", calculateBookingAmount(2));
+
 export const calculateRemainingAmount = (totalAmount, advanceAmount) => {
   return totalAmount - advanceAmount;
 };

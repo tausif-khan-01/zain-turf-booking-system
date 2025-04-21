@@ -15,24 +15,41 @@ const razorpaySchema = new mongoose.Schema({
   razorpay_signature: {
     type: String,
   },
+  fee: {
+    type: Number,
+  },
 });
 
 const transactionSchema = new mongoose.Schema(
   {
+    txnId: {
+      type: String,
+      required: true,
+      unique: true,
+    },
     amount: {
       type: Number,
       required: [true, "Amount is required"],
     },
-
     paymentMethod: {
       type: String,
-      enum: ["cash", "razorpay", "online"],
+      enum: ["Cash", "Online", "Razorpay"],
       required: [true, "Payment method is required"],
     },
     amountType: {
       type: String,
-      enum: ["advance", "balance", "razorpay_fee"],
+      enum: ["advance", "balance"],
       required: [true, "Amount type is required"],
+    },
+    status: {
+      type: String,
+      enum: ["Pending", "Paid", "Failed", "Refunded"],
+      default: "Pending",
+    },
+    date: {
+      type: Date,
+      default: Date.now,
+      required: true,
     },
   },
   {
@@ -49,7 +66,6 @@ const amountSchema = new mongoose.Schema({
     type: Number,
     required: [true, "Advance amount is required"],
   },
-
   transactions: [transactionSchema],
   remainingAmount: {
     type: Number,
@@ -57,6 +73,7 @@ const amountSchema = new mongoose.Schema({
   },
   discount: {
     type: Number,
+    default: 0,
   },
 });
 
@@ -87,18 +104,15 @@ const bookingSchema = new mongoose.Schema(
     bookingId: {
       type: String,
       required: [true, "Booking id is required"],
+      unique: true,
     },
-
     amount: amountSchema,
-
     paymentStatus: {
       type: String,
       enum: ["pending", "completed", "failed", "refunded"],
       default: "pending",
     },
-
     razorpay: razorpaySchema,
-
     status: {
       type: String,
       enum: ["confirmed", "cancelled", "completed"],
@@ -110,8 +124,18 @@ const bookingSchema = new mongoose.Schema(
   }
 );
 
-// Index for efficient querying of available slots
+// Indexes for efficient querying
 bookingSchema.index({ date: 1, startTime: 1, bookingId: 1 });
+bookingSchema.index({ "customer.contact": 1 });
+bookingSchema.index({ paymentStatus: 1 });
+bookingSchema.index({ status: 1 });
+
+// Virtual field for total paid amount
+bookingSchema.virtual('totalPaidAmount').get(function() {
+  return this.amount.transactions.reduce((sum, txn) => {
+    return txn.status === 'Paid' ? sum + txn.amount : sum;
+  }, 0);
+});
 
 const Booking = mongoose.model("Booking", bookingSchema);
 

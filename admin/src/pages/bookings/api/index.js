@@ -27,7 +27,16 @@ export const updateBookingStatus = async (bookingId, status) => {
 
 export const getBookingFinanceInfo = async (bookingId) => {
   try {
-    const response = await api.get(`/booking/finance/${bookingId}`);
+    const response = await api.get(`/booking/${bookingId}/payments`);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data || error.message;
+  }
+};
+
+export const addPayment = async (bookingId, paymentData) => {
+  try {
+    const response = await api.post(`/booking/${bookingId}/payments`, paymentData);
     return response.data;
   } catch (error) {
     throw error.response?.data || error.message;

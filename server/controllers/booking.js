@@ -12,6 +12,7 @@ import {
 import Razorpay from "razorpay";
 import config from "../constants/config.js";
 import Booking from "../models/Booking.js";
+import Txn from "../models/Txns.js";
 import { calculateBookingAmount } from "../utility/booking-calc.js";
 import { newBookingId } from "../utility/newBookingId.js";
 
@@ -20,6 +21,50 @@ const razorpay = new Razorpay({
   key_id: config.razorpay.key,
   key_secret: config.razorpay.secret,
 });
+
+// Helper function to create transaction for booking
+async function createBookingTransaction(
+  booking,
+  amount,
+  amountType,
+  paymentMethod,
+  razorpayDetails = null,
+  id = null
+) {
+  const txnId = id || `TRX-${Date.now()}`;
+  console.log("ID: ", txnId);
+  return await Txn.create({
+    txnId,
+    amount,
+    type: "income",
+    category: "Booking",
+    description: `Booking Payment - ${booking.bookingId}`,
+    paymentMethod,
+    status: "Paid",
+    razorpayDetails,
+  });
+}
+
+// Helper function to create Razorpay fee expense transaction
+async function createRazorpayFeeTransaction(
+  bookingId,
+  amount,
+  razorpayDetails
+) {
+  const txnId = `TRX-FEE-${Date.now()}`;
+
+  return await Txn.create({
+    txnId,
+    amount,
+    type: "expense",
+    category: "RazorpayFee",
+    description: `Razorpay Fee for Booking - ${bookingId}`,
+    paymentMethod: "Razorpay",
+    status: "Paid",
+    vendor: "Razorpay",
+    razorpayDetails,
+  });
+}
 
 // Get available slots for a date
 export const getAvailableSlots = async (req, res) => {
@@ -110,10 +155,10 @@ export const verifyPaymentAndBook = async (req, res) => {
 
     const amountDetails = calculateBookingAmount(booking.duration);
 
-    // create booking with Razorpay fee details
+    // Create booking
     const date = format(new Date(booking.date), "yyyy-MM-dd");
-
     const bookingId = await newBookingId();
+    const txnId = `TRX-${Date.now()}`;
 
     const bookingData = {
       date,
@@ -127,9 +172,11 @@ export const verifyPaymentAndBook = async (req, res) => {
         remainingAmount: amountDetails.remainingAmount,
         transactions: [
           {
+            txnId,
             amount: amountDetails.advanceAmount,
             amountType: "advance",
-            paymentMethod: "razorpay",
+            paymentMethod: "Razorpay",
+            status: "Paid",
           },
         ],
       },
@@ -138,12 +185,48 @@ export const verifyPaymentAndBook = async (req, res) => {
         razorpay_order_id,
         razorpay_payment_id,
         razorpay_signature,
+        fee: amountDetails.totalRazorpayFee,
       },
     };
 
-    console.log(bookingData);
-
     const newBooking = await Booking.create(bookingData);
+
+    console.log("creating transaction record");
+    // Create transaction record
+    const transaction = await createBookingTransaction(
+      newBooking,
+      amountDetails.advanceAmount,
+      "advance",
+      "Razorpay",
+      {
+        orderId: razorpay_order_id,
+        paymentId: razorpay_payment_id,
+        fee: amountDetails.totalRazorpayFee,
+        feePayedBy: amountDetails.isCustomerPayRazorpayFees
+          ? "customer"
+          : "business",
+      },
+      txnId
+    );
+
+    // If business pays Razorpay fee, create expense transaction
+    if (
+      !amountDetails.isCustomerPayRazorpayFees &&
+      amountDetails.totalRazorpayFee > 0
+    ) {
+      console.log("creating razorpay fee expense record");
+      await createRazorpayFeeTransaction(
+        bookingId,
+        amountDetails.totalRazorpayFee,
+        {
+          orderId: razorpay_order_id,
+          paymentId: razorpay_payment_id,
+          feePayedBy: "business",
+        }
+      );
+    }
+
+    console.log("transaction record created");
 
     res.status(200).json({
       status: "success",
@@ -151,7 +234,7 @@ export const verifyPaymentAndBook = async (req, res) => {
       bookingId: newBooking.bookingId,
     });
   } catch (error) {
-    console.log("error: ", error.message);
+    console.log("error: ", error);
     res.status(400).json({
       status: "error",
       message: error.message,
@@ -165,6 +248,7 @@ export const getBookingDetails = async (req, res) => {
     const { id: bookingId } = req.params;
 
     const booking = await Booking.findOne({ bookingId });
+    console.log("booking: ", JSON.stringify(booking));
     if (!booking) {
       return res.status(404).json({
         status: "error",
@@ -371,6 +455,117 @@ export const getReceipt = async (req, res) => {
     res.status(200).json({
       status: "success",
       booking,
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+// New function to record additional payments
+export const recordPayment = async (req, res) => {
+  try {
+    const { id: bookingId } = req.params;
+    const { amount, paymentMethod } = req.body;
+
+    const booking = await Booking.findOne({ bookingId });
+    if (!booking) {
+      return res.status(404).json({
+        status: "error",
+        message: "Booking not found",
+      });
+    }
+
+    // Create transaction record
+    const transaction = await createBookingTransaction(
+      booking,
+      amount,
+      "balance",
+      paymentMethod
+    );
+
+    // Update booking
+    booking.amount.transactions.push({
+      txnId: transaction.txnId,
+      amount,
+      amountType: "balance",
+      paymentMethod,
+      status: "Paid",
+    });
+    booking.amount.remainingAmount -= amount;
+
+    if (booking.amount.remainingAmount <= 0) {
+      booking.paymentStatus = "completed";
+      booking.status = "completed";
+    }
+
+    await booking.save();
+
+    res.status(200).json({
+      status: "success",
+      data: {
+        booking,
+        transaction,
+      },
+    });
+  } catch (error) {
+    res.status(400).json({
+      status: "error",
+      message: error.message,
+    });
+  }
+};
+
+// get bill info
+export const getBillInfo = async (req, res) => {
+  try {
+    const { id: bookingId } = req.params;
+    const booking = await Booking.findOne({ bookingId });
+    if (!booking) {
+      return res.status(404).json({
+        status: "error",
+        message: "Booking not found",
+      });
+    }
+
+    // Calculate total paid amount from transactions
+    const paidAmount = booking.amount.transactions.reduce(
+      (sum, transaction) => {
+        return transaction.status === "Paid" ? sum + transaction.amount : sum;
+      },
+      0
+    );
+
+    // Format payment history
+    const paymentHistory = booking.amount.transactions.map((transaction) => ({
+      description:
+        transaction.amountType === "advance"
+          ? "Booking Fee"
+          : "Balance Payment",
+      date: transaction.createdAt,
+      paymentMethod: transaction.paymentMethod,
+      amount: transaction.amount,
+      status: transaction.status,
+    }));
+
+    // Format response
+    const billInfo = {
+      totalAmount: booking.amount.totalAmount,
+      paidAmount: paidAmount,
+      remainingAmount: booking.amount.remainingAmount,
+      paymentHistory: paymentHistory,
+      paymentStatus: booking.paymentStatus,
+      // Include Razorpay fee info if applicable
+      razorpayFee: booking.razorpay?.fee || 0,
+      isCustomerPayRazorpayFees:
+        booking.razorpay?.isCustomerPayRazorpayFees || false,
+    };
+
+    res.status(200).json({
+      status: "success",
+      data: billInfo,
     });
   } catch (error) {
     res.status(400).json({

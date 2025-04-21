@@ -1,18 +1,13 @@
+import cookieParser from "cookie-parser";
+import cors from "cors";
 import "dotenv/config";
 import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
-import morgan from "morgan";
-import helmet from "helmet";
 import rateLimit from "express-rate-limit";
-import cookieParser from "cookie-parser";
+import helmet from "helmet";
+import morgan from "morgan";
 import connectDB from "./config/db.js";
 import { initializeDefaultUsers } from "./utils/initializeDefaultUsers.js";
-
-// Import routes
-import authRoutes from "./routes/auth.js";
-import bookingRoutes from "./routes/booking.js";
-import turfRoutes from "./routes/turf.js";
+import apiRoutes from "./routes/api.js";
 
 // Initialize express app
 const app = express();
@@ -24,7 +19,7 @@ connectDB();
 initializeDefaultUsers();
 
 // Trust proxy configuration
-app.set('trust proxy', 1); // trust first proxy
+app.set("trust proxy", 1); // trust first proxy
 
 // Parse CORS origins from environment variable
 const allowedOrigins = process.env.CORS_ORIGINS
@@ -74,9 +69,7 @@ if (process.env.NODE_ENV === "development") {
 }
 
 // Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/booking", bookingRoutes);
-app.use("/api/turfs", turfRoutes);
+app.use("/api", apiRoutes);
 
 // Health check endpoint
 app.get("/health", (req, res) => {

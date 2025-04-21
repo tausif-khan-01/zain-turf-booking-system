@@ -8,6 +8,8 @@ import {
   updateBookingStatus,
   verifyPaymentAndBook,
   getReceipt,
+  recordPayment,
+  getBillInfo,
 } from "../controllers/booking.js";
 import { protect, authorize } from "../middlewares/auth.js";
 
@@ -31,7 +33,6 @@ router.patch(
 // Get single booking
 router.get("/info/:id", protect, getBookingDetails);
 router.get("/:bookingId", getBookingDetails);
-
 router.get("/receipt/:id", getReceipt);
 
 // Create booking
@@ -42,5 +43,9 @@ router.put("/:id", protect, updateBookingStatus);
 
 // Delete booking
 // router.delete("/:id", protect, authorize("admin"), deleteBooking);
+
+// New payment route
+router.get("/:id/payments", protect, getBillInfo);
+router.post("/:id/payments", protect, recordPayment);
 
 export default router;

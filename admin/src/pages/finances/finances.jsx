@@ -1,176 +1,162 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  DollarSign,
-  TrendingUp,
-  TrendingDown,
-  Filter,
-  Search,
-  Wallet,
-} from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { DollarSign, TrendingUp, TrendingDown, Wallet } from "lucide-react";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
 import useMediaQuery from "@/hooks/use-media-query";
-import FinancialCard from "./components/FinancialCard";
-import TransactionsTable from "./components/TransactionsTable";
-import MobileTransactionsList from "./components/MobileTransactionsList";
-import { financialData } from "./constants/financialData";
+import FinancialCard from "./components/financial-overview/FinancialCard";
+import TransactionsTable from "./components/transactions/TransactionsTable";
+import MobileTransactionsList from "./components/transactions/MobileTransactionsList";
+import { Header } from "./components/layout/Header";
+import { TimeframeSelector } from "./components/layout/TimeframeSelector";
+import { TransactionsHeader } from "./components/layout/TransactionsHeader";
+import { ErrorAlert } from "./components/error/ErrorAlert";
+import { useFinancialSummary } from "./hooks/useFinancialSummary";
+import { useTransactions } from "./hooks/useTransactions";
+import { useSearchTransactions } from "./hooks/useSearchTransactions";
 
 export default function FinancesPage() {
   const [timeframe, setTimeframe] = useState("month");
   const [transactionType, setTransactionType] = useState("all");
-  const [searchQuery, setSearchQuery] = useState("");
+  const { searchQuery, setSearchQuery, debouncedSearchQuery, page, setPage } =
+    useSearchTransactions();
   const isMobile = useMediaQuery("(max-width: 768px)");
 
-  // Filter transactions based on type and search query
-  const filteredTransactions = financialData.transactions.filter(
-    (transaction) => {
-      const matchesType =
-        transactionType === "all" || transaction.type === transactionType;
-      const matchesSearch =
-        transaction.description
-          .toLowerCase()
-          .includes(searchQuery.toLowerCase()) ||
-        transaction.id.toLowerCase().includes(searchQuery.toLowerCase());
-      return matchesType && matchesSearch;
-    }
-  );
+  const {
+    data: summaryData,
+    isLoading: isSummaryLoading,
+    error: summaryError,
+  } = useFinancialSummary(timeframe);
+
+  const {
+    data: transactionsData,
+    isLoading: isTransactionsLoading,
+    error: transactionsError,
+  } = useTransactions({
+    page,
+    type: transactionType,
+    search: debouncedSearchQuery,
+  });
+
+  if (summaryError || transactionsError) {
+    return <ErrorAlert error={summaryError || transactionsError} />;
+  }
+
+  const {
+    totalRevenue = 0,
+    totalExpenses = 0,
+    netProfit = 0,
+    pendingPayments = 0,
+    revenueChange = 0,
+    expensesChange = 0,
+  } = summaryData?.data || {};
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <Header isLoading={isSummaryLoading}>
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Finances</h1>
           <p className="text-muted-foreground">
             Manage your financial transactions and reports
           </p>
         </div>
-      </div>
+      </Header>
 
-      {/* Timeframe Selector */}
-      <div className="flex justify-end">
-        <Tabs
-          value={timeframe}
-          onValueChange={setTimeframe}
-          className="w-full md:w-[400px]"
-        >
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="week">This Week</TabsTrigger>
-            <TabsTrigger value="month">This Month</TabsTrigger>
-            <TabsTrigger value="year">This Year</TabsTrigger>
-          </TabsList>
-        </Tabs>
-      </div>
+      <TimeframeSelector
+        value={timeframe}
+        onChange={setTimeframe}
+        isLoading={isSummaryLoading}
+      />
 
-      {/* Financial Overview */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <FinancialCard
           title="Total Revenue"
-          value={`₹${financialData.totalRevenue.toLocaleString()}`}
-          change={financialData.revenueChange}
+          value={`₹${totalRevenue.toLocaleString()}`}
+          change={revenueChange}
           icon={<TrendingUp className="h-5 w-5" />}
           timeframe={timeframe}
           positive={true}
+          isLoading={isSummaryLoading}
         />
         <FinancialCard
           title="Total Expenses"
-          value={`₹${financialData.expenses.toLocaleString()}`}
-          change={financialData.expensesChange}
+          value={`₹${totalExpenses.toLocaleString()}`}
+          change={expensesChange}
           icon={<TrendingDown className="h-5 w-5" />}
           timeframe={timeframe}
           positive={false}
+          isLoading={isSummaryLoading}
         />
         <FinancialCard
           title="Net Profit"
-          value={`₹${financialData.profit.toLocaleString()}`}
-          change={financialData.profitChange}
+          value={`₹${netProfit.toLocaleString()}`}
+          change={revenueChange - expensesChange}
           icon={<DollarSign className="h-5 w-5" />}
           timeframe={timeframe}
-          positive={true}
+          positive={netProfit >= 0}
+          isLoading={isSummaryLoading}
         />
         <FinancialCard
           title="Pending Payments"
-          value={`₹${financialData.pendingPayments.toLocaleString()}`}
-          change={financialData.pendingPaymentsChange}
+          value={`₹${pendingPayments.toLocaleString()}`}
+          change={0}
           icon={<Wallet className="h-5 w-5" />}
           timeframe={timeframe}
           positive={false}
+          isLoading={isSummaryLoading}
         />
       </div>
 
-      {/* Transactions */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex flex-col md:flex-row gap-4 md:items-center md:justify-between">
-            <div>
-              <CardTitle>Transactions</CardTitle>
-              <CardDescription>
-                View and manage all financial transactions
-              </CardDescription>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <div className="relative w-full md:w-64">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
-                <Input
-                  type="search"
-                  placeholder="Search transactions..."
-                  className="w-full pl-9"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Select
-                value={transactionType}
-                onValueChange={setTransactionType}
-              >
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-4 w-4" />
-                    <span>Type</span>
-                  </div>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Transactions</SelectItem>
-                  <SelectItem value="income">Income</SelectItem>
-                  <SelectItem value="expense">Expenses</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </CardHeader>
+        <TransactionsHeader
+          searchQuery={searchQuery}
+          onSearchChange={setSearchQuery}
+          transactionType={transactionType}
+          onTransactionTypeChange={setTransactionType}
+        />
         <CardContent>
-          {isMobile ? (
-            <MobileTransactionsList transactions={filteredTransactions} />
+          {isTransactionsLoading ? (
+            <div className="space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="h-16 w-full bg-muted animate-pulse rounded-md"
+                />
+              ))}
+            </div>
+          ) : isMobile ? (
+            <MobileTransactionsList
+              transactions={transactionsData?.data?.transactions}
+            />
           ) : (
-            <TransactionsTable transactions={filteredTransactions} />
+            <TransactionsTable
+              transactions={transactionsData?.data?.transactions}
+            />
           )}
         </CardContent>
         <CardFooter className="flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Showing <strong>{filteredTransactions.length}</strong> of{" "}
-            <strong>{financialData.transactions.length}</strong> transactions
+            Showing{" "}
+            <strong>{transactionsData?.data?.transactions?.length}</strong> of{" "}
+            <strong>{transactionsData?.data?.pagination?.total}</strong>{" "}
+            transactions
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page === 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+            >
               Previous
             </Button>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={page >= transactionsData?.data?.pagination?.pages}
+              onClick={() => setPage((p) => p + 1)}
+            >
               Next
             </Button>
           </div>

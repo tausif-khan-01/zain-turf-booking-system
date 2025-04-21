@@ -299,12 +299,12 @@ export default function BookingConfirmation({
                     <span className="text-gray-600">Advance Paid</span>
                     <span>₹{bookingData.amount.advanceAmount}</span>
                   </div>
-                  {bookingData.amount.discount && (
+                  {(bookingData?.amount?.discount || 0) > 0 ? (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Discount</span>
                       <span>₹{bookingData.amount.discount}</span>
                     </div>
-                  )}
+                  ) : null}
                   <div className="flex justify-between font-semibold">
                     <span>Remaining Amount</span>
                     <span className="text-primary">

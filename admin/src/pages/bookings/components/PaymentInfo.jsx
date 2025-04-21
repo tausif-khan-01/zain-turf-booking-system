@@ -18,8 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useParams } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { getBookingFinanceInfo } from "../api";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getBookingFinanceInfo, addPayment } from "../api";
 import { Skeleton } from "@/components/ui/skeleton";
 import * as yup from "yup";
 import { useForm } from "react-hook-form";
@@ -32,10 +32,11 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
+import { toast } from "sonner";
 
 export function PaymentInfoSkeleton() {
   return (
-    <Card>
+    <Card className="bg-background">
       <CardHeader>
         <CardTitle>Payment Information</CardTitle>
         <CardDescription>Track payments for this booking</CardDescription>
@@ -43,15 +44,15 @@ export function PaymentInfoSkeleton() {
       <CardContent>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-muted rounded-lg">
               <Skeleton className="h-4 w-24 mb-1" />
               <Skeleton className="h-7 w-20" />
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-muted rounded-lg">
               <Skeleton className="h-4 w-24 mb-1" />
               <Skeleton className="h-7 w-20" />
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-muted rounded-lg">
               <Skeleton className="h-4 w-32 mb-1" />
               <Skeleton className="h-7 w-20" />
             </div>
@@ -61,7 +62,7 @@ export function PaymentInfoSkeleton() {
 
           <div>
             <Skeleton className="h-5 w-32 mb-2" />
-            <div className="bg-gray-50 p-4 rounded-lg">
+            <div className="bg-muted p-4 rounded-lg">
               <div className="space-y-3">
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className="flex justify-between items-center">
@@ -83,40 +84,21 @@ export function PaymentInfoSkeleton() {
 
 export function PaymentInfo() {
   const { id } = useParams();
-  // const { data, isLoading } = useQuery({
-  //   queryKey: ["bookings", id],
-  //   queryFn: () => getBookingFinanceInfo(id),
-  //   enabled: !!id,
-  // });
 
-  // const booking = data?.booking;
+  const { data, isLoading } = useQuery({
+    queryKey: ["bookings", id, "payment-info"],
+    queryFn: () => getBookingFinanceInfo(id),
+    enabled: !!id,
+  });
 
-  // sample data
-  const booking = {
-    amount: 1000,
-    paid: 500,
-    remaining: 500,
+  if (isLoading) {
+    return <PaymentInfoSkeleton />;
+  }
 
-    transactions: [
-      {
-        amount: 500,
-        method: "cash",
-        date: "2021-01-01",
-      },
-      {
-        amount: 500,
-        method: "cash",
-        date: "2021-01-01",
-      },
-    ],
-  };
-  // if (isLoading) {
-  //   // TODO: Add skeleton
-  //   return <PaymentInfoSkeleton />;
-  // }
+  const paymentData = data?.data;
 
   return (
-    <Card>
+    <Card className="bg-background">
       <CardHeader>
         <CardTitle>Payment Information</CardTitle>
         <CardDescription>Track payments for this booking</CardDescription>
@@ -124,20 +106,20 @@ export function PaymentInfo() {
       <CardContent>
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Total Amount</p>
-              <p className="text-xl font-bold">₹{booking.amount}</p>
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">Total Amount</p>
+              <p className="text-xl font-bold">₹{paymentData?.totalAmount}</p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Paid Amount</p>
-              <p className="text-xl font-bold text-green-600">
-                ₹{booking.paid}
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">Paid Amount</p>
+              <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                ₹{paymentData?.paidAmount}
               </p>
             </div>
-            <div className="p-4 bg-gray-50 rounded-lg">
-              <p className="text-sm text-gray-500">Remaining Amount</p>
-              <p className="text-xl font-bold text-amber-600">
-                ₹{booking.remaining}
+            <div className="p-4 bg-muted rounded-lg">
+              <p className="text-sm text-muted-foreground">Remaining Amount</p>
+              <p className="text-xl font-bold text-amber-600 dark:text-amber-400">
+                ₹{paymentData?.remainingAmount}
               </p>
             </div>
           </div>
@@ -148,17 +130,21 @@ export function PaymentInfo() {
             <h3 className="text-sm font-medium mb-2">Payment History</h3>
 
             <div className="space-y-2">
-              {booking.transactions.map((transaction) => (
-                <div key={transaction.id} className="bg-gray-50 p-4 rounded-lg">
+              {paymentData?.paymentHistory?.map((transaction, index) => (
+                <div key={index} className="bg-muted p-4 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <p className="font-medium">Booking Fee</p>
-                      <p className="text-sm text-gray-500">
-                        {transaction.date} • {transaction.method}
+                      <p className="font-medium">{transaction.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {new Date(transaction.date).toLocaleDateString()} •{" "}
+                        {transaction.paymentMethod}
                       </p>
                     </div>
                     <div className="text-right">
                       <p className="font-medium">₹{transaction.amount}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {transaction.status}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -166,8 +152,11 @@ export function PaymentInfo() {
             </div>
           </div>
 
-          {booking.remaining > 0 && (
-            <AddPayment remaining={booking.remaining} bookingId={id} />
+          {paymentData?.remainingAmount > 0 && (
+            <AddPayment
+              remaining={paymentData.remainingAmount}
+              bookingId={id}
+            />
           )}
         </div>
       </CardContent>
@@ -176,6 +165,7 @@ export function PaymentInfo() {
 }
 
 const AddPayment = ({ remaining, bookingId }) => {
+  const queryClient = useQueryClient();
   const schema = yup.object().shape({
     amount: yup
       .number()
@@ -191,19 +181,35 @@ const AddPayment = ({ remaining, bookingId }) => {
     resolver: yupResolver(schema),
   });
 
+  const { mutate: submitPayment, isPending } = useMutation({
+    mutationFn: (data) => addPayment(bookingId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["bookings", bookingId, "payment-info"] });
+      form.reset();
+      toast.success("Payment recorded successfully");
+    },
+    onError: (error) => {
+      toast.error(error.message || "Failed to record payment");
+    },
+  });
+
   const onPaymentSubmit = (data) => {
-    console.log(data);
+    submitPayment({
+      amount: data.amount,
+      paymentMethod: data.method,
+      description: "Booking Fee",
+    });
   };
 
   return (
-    <div>
-      <h3 className="text-lg font-medium mb-2">Record Payment</h3>
+    <div className="bg-muted p-4 rounded-lg">
+      <h3 className="text-lg font-medium mb-4">Record Payment</h3>
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onPaymentSubmit)}
-          className="space-y-3"
+          className="space-y-4"
         >
-          <div className="flex flex-col md:flex-row gap-2 *:flex-1">
+          <div className="flex flex-col md:flex-row gap-4 *:flex-1">
             <div>
               <FormField
                 control={form.control}
@@ -219,6 +225,7 @@ const AddPayment = ({ remaining, bookingId }) => {
                         placeholder="Enter amount"
                         type="number"
                         min="1"
+                        className="bg-background"
                         {...field}
                       />
                     </FormControl>
@@ -228,7 +235,6 @@ const AddPayment = ({ remaining, bookingId }) => {
               />
             </div>
 
-            {/* Payment Method   */}
             <div>
               <FormField
                 control={form.control}
@@ -243,15 +249,20 @@ const AddPayment = ({ remaining, bookingId }) => {
                         value={field.value}
                         onValueChange={field.onChange}
                       >
-                        <SelectTrigger id="payment-method" className="w-full ">
-                          <SelectValue placeholder="Select payment method " />
+                        <SelectTrigger 
+                          id="payment-method" 
+                          className="w-full bg-background"
+                        >
+                          <SelectValue placeholder="Select payment method" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="cash">Cash</SelectItem>
-                          <SelectItem value="online">Online</SelectItem>
-                          <SelectItem value="card">Card</SelectItem>
-                          <SelectItem value="upi">UPI</SelectItem>
-                          <SelectItem value="bank">Bank Transfer</SelectItem>
+                          <SelectItem value="Cash">Cash</SelectItem>
+                          <SelectItem value="Online">Online</SelectItem>
+                          <SelectItem value="Card">Card</SelectItem>
+                          <SelectItem value="UPI">UPI</SelectItem>
+                          <SelectItem value="Bank Transfer">
+                            Bank Transfer
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -262,8 +273,12 @@ const AddPayment = ({ remaining, bookingId }) => {
             </div>
 
             <div className="mt-auto w-full">
-              <Button type="submit" className="w-full">
-                Record Payment
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isPending}
+              >
+                {isPending ? "Recording..." : "Record Payment"}
               </Button>
             </div>
           </div>

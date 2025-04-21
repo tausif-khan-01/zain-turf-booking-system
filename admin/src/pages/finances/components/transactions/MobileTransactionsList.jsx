@@ -1,8 +1,8 @@
-import React from "react"
-import { Clock, CheckCircle2, XCircle } from "lucide-react"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
+import React from "react";
+import { Clock, CheckCircle2, XCircle } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { format } from "date-fns";
 
 const getStatusBadge = (status) => {
   switch (status) {
@@ -12,38 +12,38 @@ const getStatusBadge = (status) => {
           <CheckCircle2 className="h-3 w-3" />
           Paid
         </Badge>
-      )
+      );
     case "Pending":
       return (
         <Badge variant="warning" className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
           Pending
         </Badge>
-      )
+      );
     case "Failed":
       return (
         <Badge variant="destructive" className="flex items-center gap-1">
           <XCircle className="h-3 w-3" />
           Failed
         </Badge>
-      )
+      );
     default:
-      return null
+      return null;
   }
-}
+};
 
 const getPaymentMethodIcon = (method) => {
   switch (method) {
     case "Cash":
-      return "💵"
+      return "💵";
     case "Online":
-      return "💳"
+      return "💳";
     case "Razorpay":
-      return "🔄"
+      return "🔄";
     default:
-      return "💳"
+      return "💳";
   }
-}
+};
 
 const MobileTransactionsList = ({ transactions }) => {
   return (
@@ -89,7 +89,7 @@ const MobileTransactionsList = ({ transactions }) => {
         ))
       )}
     </div>
-  )
-}
+  );
+};
 
-export default MobileTransactionsList 
+export default MobileTransactionsList; 

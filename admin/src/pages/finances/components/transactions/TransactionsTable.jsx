@@ -52,7 +52,7 @@ const getPaymentMethodIcon = (method) => {
   }
 };
 
-const TransactionsTable = ({ transactions, isLoading }) => {
+const TransactionsTable = ({ transactions }) => {
   return (
     <div className="rounded-md border">
       <Table>
@@ -122,4 +122,4 @@ const TransactionsTable = ({ transactions, isLoading }) => {
   );
 };
 
-export default TransactionsTable;
+export default TransactionsTable; 

@@ -13,7 +13,7 @@ const config = {
     key: process.env.RAZORPAY_KEY_ID,
     secret: process.env.RAZORPAY_KEY_SECRET,
     isCustomerPayRazorpayFees: Boolean(
-      process.env.IS_CUSTOMER_PAYS_RAZORPAY_FEES
+      Number(process.env.IS_CUSTOMER_PAYS_RAZORPAY_FEES)
     ),
   },
   port: process.env.PORT || 5000,

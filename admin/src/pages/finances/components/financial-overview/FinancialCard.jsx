@@ -3,7 +3,21 @@ import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const FinancialCard = ({ title, value, change, icon, timeframe, positive }) => {
+const FinancialCard = ({ title, value, change, icon, timeframe, positive, isLoading }) => {
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader className="pb-2">
+          <div className="h-4 w-24 bg-muted animate-pulse rounded-md" />
+        </CardHeader>
+        <CardContent>
+          <div className="h-8 w-32 bg-muted animate-pulse rounded-md" />
+          <div className="h-4 w-16 mt-2 bg-muted animate-pulse rounded-md" />
+        </CardContent>
+      </Card>
+    );
+  }
+
   const isPositive = change >= 0;
   const timeframeText =
     timeframe === "week" ? "week" : timeframe === "month" ? "month" : "year";
@@ -42,4 +56,4 @@ const FinancialCard = ({ title, value, change, icon, timeframe, positive }) => {
   );
 };
 
-export default FinancialCard;
+export default FinancialCard; 
