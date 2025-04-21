@@ -9,7 +9,7 @@ import Dashboard from "./pages/dashboard";
 import ScanPage from "./pages/scan";
 import ExpensesPage from "./pages/expenses/expenses";
 import FinancesPage from "@/pages/finances/finances";
-
+import { MaintenancePage } from "@/components/maintainace";
 export default function App() {
   return (
     <AuthProvider>
@@ -30,7 +30,8 @@ export default function App() {
             <Route path="/bookings/:id" element={<BookingDetailsPage />} />
           </Route>
           <Route path="/scan" element={<ScanPage />} />
-          <Route path="/expenses" element={<ExpensesPage />} />
+          {/* <Route path="/expenses" element={<ExpensesPage />} /> */}
+          <Route path="/expenses" element={<MaintenancePage />} />
           <Route path="/finances" element={<FinancesPage />} />
         </Route>
       </Routes>
