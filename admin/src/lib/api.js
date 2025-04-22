@@ -14,6 +14,7 @@ api.interceptors.request.use(
     }
     return config;
   },
+
   (error) => {
     return Promise.reject(error);
   }
@@ -25,8 +26,7 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // If error is 401 and we haven't tried to refresh token yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest?._retry) {
       originalRequest._retry = true;
 
       console.log("originalRequest", originalRequest);
@@ -34,12 +34,13 @@ api.interceptors.response.use(
         const refreshToken = Cookies.get("refreshToken");
         console.log("refreshToken", refreshToken);
         if (!refreshToken) {
-          throw new Error("No refresh token available");
+          // throw new Error("No refresh token available");
+          return Promise.reject(error);
         }
 
         // Call refresh token endpoint
         const response = await axios.post(
-          `${import.meta.env.VITE_API_URL}/api/auth/refresh`,
+          `${import.meta.env.VITE_API_URL}/auth/refresh`,
           { refreshToken }
         );
 
@@ -60,7 +61,7 @@ api.interceptors.response.use(
         Cookies.remove("accessToken");
         Cookies.remove("refreshToken");
         window.location.href = "/login";
-        return Promise.reject(refreshError);
+        return Promise.reject(error);
       }
     }
 

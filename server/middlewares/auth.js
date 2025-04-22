@@ -18,7 +18,7 @@ export const protect = async (req, res, next) => {
     const decoded = verifyAccessToken(accessToken);
     if (!decoded) {
       return res.status(401).json({
-        status: "error",
+        status: 401 || "error",
         message: "Invalid access token",
       });
     }
