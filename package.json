@@ -1,1 +1,27 @@
-{}
+{
+  "name": "zain-turf-booking-system",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "client": "cd website && npm run dev",
+    "server": "cd server && npm run dev",
+    "admin": "cd admin && npm run dev",
+    "app": "concurrently -n \"admin,client,server\" -c \"bgBlue,bgYellow,bgRed\" \"npm run admin\" \"npm run client\" \"npm run server\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tausif-khan-01/zain-turf-booking-system.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tausif-khan-01/zain-turf-booking-system/issues"
+  },
+  "homepage": "https://github.com/tausif-khan-01/zain-turf-booking-system#readme",
+  "description": "",
+  "dependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
