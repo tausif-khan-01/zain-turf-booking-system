@@ -19,6 +19,10 @@ export const getFinancialSummary = async (req, res) => {
 
     // Set date range based on period
     switch (period) {
+      case "today":
+        startDate = startOfDay(now);
+        endDate = endOfDay(now);
+        break;
       case "week":
         startDate = startOfWeek(now);
         endDate = endOfWeek(now);

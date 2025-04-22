@@ -36,7 +36,7 @@ const expenseSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["Cash", "Online"],
+      enum: ["Cash", "Online", "Bank Transfer", "Cheque", "UPI", "Razorpay"],
       required: true,
     },
     relatedTransaction: {
@@ -57,4 +57,4 @@ expenseSchema.index({ status: 1 });
 
 const Expense = mongoose.model("Expense", expenseSchema);
 
-export default Expense; 
+export default Expense;

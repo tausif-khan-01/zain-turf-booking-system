@@ -35,7 +35,7 @@ const txnSchema = new mongoose.Schema(
     paymentMethod: {
       type: String,
       required: true,
-      enum: ["Cash", "Online", "Razorpay"],
+      enum: ["Cash", "Online", "Razorpay", "Bank Transfer", "Cheque", "UPI"],
     },
     type: {
       type: String,

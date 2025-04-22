@@ -6,6 +6,8 @@ const fetchTransactions = async ({
   type = "all",
   category = "all",
   search = "",
+  startDate = undefined,
+  endDate = undefined,
 }) => {
   const { data } = await api.get(`/transactions`, {
     params: {
@@ -14,6 +16,8 @@ const fetchTransactions = async ({
       type: type === "all" ? undefined : type,
       category: category === "all" ? undefined : category,
       search: search || undefined,
+      startDate: startDate || undefined,
+      endDate: endDate || undefined,
     },
   });
   if (data.status === "error") {
@@ -22,9 +26,10 @@ const fetchTransactions = async ({
   return data;
 };
 
-export const useTransactions = ({ page, type, search }) => {
+export const useTransactions = ({ page, type, search, startDate, endDate }) => {
   return useQuery({
-    queryKey: ["transactions", page, type, search],
-    queryFn: () => fetchTransactions({ page, type, search }),
+    queryKey: ["transactions", page, type, search, startDate, endDate],
+    queryFn: () =>
+      fetchTransactions({ page, type, search, startDate, endDate }),
   });
-}; 
+};

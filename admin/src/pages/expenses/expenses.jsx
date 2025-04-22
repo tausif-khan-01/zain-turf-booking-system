@@ -57,78 +57,22 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-
-// Mock expense data
-const expenseData = {
-  totalExpenses: 45000,
-  expensesChange: 5,
-  maintenanceExpenses: 15000,
-  maintenanceChange: 8,
-  utilityExpenses: 12000,
-  utilityChange: -3,
-  expenses: [
-    {
-      id: "EXP-1001",
-      date: "Jul 24, 2023",
-      description: "Turf Maintenance",
-      amount: 5000,
-      category: "maintenance",
-      status: "paid",
-      paymentMethod: "cash",
-      vendor: "Green Turf Services",
-    },
-    {
-      id: "EXP-1002",
-      date: "Jul 25, 2023",
-      description: "Electricity Bill",
-      amount: 8000,
-      category: "utility",
-      status: "paid",
-      paymentMethod: "online",
-      vendor: "State Electricity Board",
-    },
-    {
-      id: "EXP-1003",
-      date: "Jul 26, 2023",
-      description: "Staff Salary",
-      amount: 15000,
-      category: "salary",
-      status: "paid",
-      paymentMethod: "bank",
-      vendor: "Internal",
-    },
-    {
-      id: "EXP-1004",
-      date: "Jul 27, 2023",
-      description: "Equipment Purchase",
-      amount: 7000,
-      category: "equipment",
-      status: "paid",
-      paymentMethod: "online",
-      vendor: "Sports Gear Ltd",
-    },
-    {
-      id: "EXP-1005",
-      date: "Jul 28, 2023",
-      description: "Water Bill",
-      amount: 3000,
-      category: "utility",
-      status: "pending",
-      paymentMethod: "online",
-      vendor: "Municipal Water Supply",
-    },
-    {
-      id: "EXP-1006",
-      date: "Jul 29, 2023",
-      description: "Cleaning Services",
-      amount: 2000,
-      category: "maintenance",
-      status: "paid",
-      paymentMethod: "cash",
-      vendor: "CleanPro Services",
-    },
-  ],
-};
+import { useExpenseSummary } from "./hooks/useExpenseSummary";
+import { useExpenses } from "./hooks/useExpenses";
+import { format } from "date-fns";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AddExpenseForm } from "./components/AddExpenseForm";
+import { useExpenseMutations } from "./hooks/useExpenseMutations";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 function ExpenseCard({ title, value, change, icon, timeframe }) {
   const isPositive = change >= 0;
@@ -170,20 +114,56 @@ function ExpenseCard({ title, value, change, icon, timeframe }) {
 function ExpensesPage() {
   const [timeframe, setTimeframe] = useState("month");
   const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
+  const [page, setPage] = useState(1);
+  const limit = 10;
   const isMobile = useMediaQuery("(max-width: 768px)");
+  const [selectedExpense, setSelectedExpense] = useState(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const { deleteExpense } = useExpenseMutations();
 
-  // Filter expenses based on category and search query
-  const filteredExpenses = expenseData.expenses.filter((expense) => {
-    const matchesCategory =
-      categoryFilter === "all" || expense.category === categoryFilter;
-    const matchesSearch =
-      expense.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      expense.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      expense.vendor.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesSearch;
+  //  ["Maintenance", "Utility", "Salary", "Other"]
+  const categories = [
+    { id: "all", name: "All Categories" },
+    { id: "maintenance", name: "Maintenance" },
+    { id: "utility", name: "Utility" },
+    { id: "salary", name: "Salary" },
+    { id: "other", name: "Other" },
+  ];
+
+  const { data: summary, isLoading: isLoadingSummary } =
+    useExpenseSummary(timeframe);
+  const { data: expensesData, isLoading: isLoadingExpenses } = useExpenses({
+    page,
+    limit,
+    category: categoryFilter !== "all" ? categoryFilter : undefined,
+    status: statusFilter !== "all" ? statusFilter : undefined,
+    search: searchQuery,
   });
+
+  const handlePageChange = (newPage) => {
+    setPage(newPage);
+  };
+
+  const handleEdit = (expense) => {
+    setSelectedExpense(expense);
+    setIsAddExpenseOpen(true);
+  };
+
+  const handleDelete = (expense) => {
+    setSelectedExpense(expense);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (selectedExpense) {
+      deleteExpense.mutate(selectedExpense.expenseId);
+      setIsDeleteDialogOpen(false);
+      setSelectedExpense(null);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -219,27 +199,37 @@ function ExpensesPage() {
 
       {/* Expense Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <ExpenseCard
-          title="Total Expenses"
-          value={`₹${expenseData.totalExpenses.toLocaleString()}`}
-          change={expenseData.expensesChange}
-          icon={<Receipt className="h-5 w-5" />}
-          timeframe={timeframe}
-        />
-        <ExpenseCard
-          title="Maintenance"
-          value={`₹${expenseData.maintenanceExpenses.toLocaleString()}`}
-          change={expenseData.maintenanceChange}
-          icon={<Wrench className="h-5 w-5" />}
-          timeframe={timeframe}
-        />
-        <ExpenseCard
-          title="Utilities"
-          value={`₹${expenseData.utilityExpenses.toLocaleString()}`}
-          change={expenseData.utilityChange}
-          icon={<Zap className="h-5 w-5" />}
-          timeframe={timeframe}
-        />
+        {isLoadingSummary ? (
+          <>
+            <Skeleton className="h-[120px]" />
+            <Skeleton className="h-[120px]" />
+            <Skeleton className="h-[120px]" />
+          </>
+        ) : (
+          <>
+            <ExpenseCard
+              title="Total Expenses"
+              value={`₹${summary?.totalExpenses?.toLocaleString()}`}
+              change={summary?.expensesChange || 0}
+              icon={<Receipt className="h-5 w-5" />}
+              timeframe={timeframe}
+            />
+            <ExpenseCard
+              title="Maintenance"
+              value={`₹${summary?.categories?.maintenance?.toLocaleString()}`}
+              change={summary?.maintenanceChange || 0}
+              icon={<Wrench className="h-5 w-5" />}
+              timeframe={timeframe}
+            />
+            <ExpenseCard
+              title="Utilities"
+              value={`₹${summary?.categories?.utility?.toLocaleString()}`}
+              change={summary?.utilityChange || 0}
+              icon={<Zap className="h-5 w-5" />}
+              timeframe={timeframe}
+            />
+          </>
+        )}
       </div>
 
       {/* Expenses List */}
@@ -272,122 +262,107 @@ function ExpensesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="maintenance">Maintenance</SelectItem>
-                  <SelectItem value="utility">Utilities</SelectItem>
-                  <SelectItem value="salary">Salaries</SelectItem>
-                  <SelectItem value="equipment">Equipment</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-full md:w-[180px]">
+                  <div className="flex items-center gap-2">
+                    <Filter className="h-4 w-4" />
+                    <span>Status</span>
+                  </div>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Statuses</SelectItem>
+                  <SelectItem value="Paid">Paid</SelectItem>
+                  <SelectItem value="Pending">Pending</SelectItem>
+                  <SelectItem value="Failed">Failed</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
         </CardHeader>
         <CardContent>
-          {isMobile ? (
-            // Mobile card view
+          {isLoadingExpenses ? (
             <div className="space-y-4">
-              {filteredExpenses.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  No expenses found
-                </div>
-              ) : (
-                filteredExpenses.map((expense) => (
-                  <Card
-                    key={expense.id}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <div className="font-medium">
-                            {expense.description}
+              <Skeleton className="h-[60px]" />
+              <Skeleton className="h-[60px]" />
+              <Skeleton className="h-[60px]" />
+            </div>
+          ) : (
+            <>
+              {isMobile ? (
+                <div className="space-y-4">
+                  {expensesData?.expenses?.map((expense) => (
+                    <Card key={expense.expenseId}>
+                      <CardContent className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <div className="font-medium">
+                              {expense.description}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {format(
+                                new Date(expense.createdAt),
+                                "MMM d, yyyy"
+                              )}
+                            </div>
                           </div>
-                          <div className="text-xs text-gray-500">
-                            {expense.id} • {expense.date}
-                          </div>
-                        </div>
-                        <Badge variant="outline" className="capitalize">
-                          {expense.category}
-                        </Badge>
-                      </div>
-                      <div className="text-sm text-gray-600 mb-2">
-                        Vendor: {expense.vendor}
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <CreditCard className="h-4 w-4 text-gray-500" />
-                          <span className="text-sm capitalize">
-                            {expense.paymentMethod}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2">
                           <Badge
                             variant={
-                              expense.status === "paid"
+                              expense.status === "Paid"
                                 ? "success"
                                 : "secondary"
                             }
-                            className="capitalize"
                           >
                             {expense.status}
                           </Badge>
-                          <span className="font-medium text-red-600">
-                            -₹{expense.amount.toLocaleString()}
-                          </span>
                         </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
-              )}
-            </div>
-          ) : (
-            // Desktop table view
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Expense ID</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Vendor</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredExpenses.length === 0 ? (
+                        <div className="mt-2 flex justify-between items-center">
+                          <div className="text-sm text-gray-500">
+                            {expense.vendor}
+                          </div>
+                          <div className="font-medium text-red-600">
+                            -₹{expense.amount.toLocaleString()}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell
-                        colSpan={8}
-                        className="text-center py-8 text-gray-500"
-                      >
-                        No expenses found
-                      </TableCell>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Description</TableHead>
+                      <TableHead>Vendor</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ) : (
-                    filteredExpenses.map((expense) => (
-                      <TableRow key={expense.id}>
-                        <TableCell className="font-medium">
-                          {expense.id}
+                  </TableHeader>
+                  <TableBody>
+                    {expensesData?.expenses?.map((expense) => (
+                      <TableRow key={expense.expenseId}>
+                        <TableCell>
+                          {format(new Date(expense.createdAt), "MMM d, yyyy")}
                         </TableCell>
-                        <TableCell>{expense.date}</TableCell>
                         <TableCell>{expense.description}</TableCell>
                         <TableCell>{expense.vendor}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="capitalize">
-                            {expense.category}
-                          </Badge>
-                        </TableCell>
+                        <TableCell>{expense.category}</TableCell>
                         <TableCell>
                           <Badge
                             variant={
-                              expense.status === "paid"
+                              expense.status === "Paid"
                                 ? "success"
                                 : "secondary"
                             }
-                            className="capitalize"
                           >
                             {expense.status}
                           </Badge>
@@ -400,135 +375,105 @@ function ExpensesPage() {
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="icon">
                                 <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Actions</span>
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEdit(expense)}>
                                 <Edit className="mr-2 h-4 w-4" />
-                                Edit Expense
+                                Edit
                               </DropdownMenuItem>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600">
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => handleDelete(expense)}
+                              >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete Expense
+                                Delete
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </>
           )}
         </CardContent>
         <CardFooter className="flex items-center justify-between">
           <div className="text-sm text-gray-500">
-            Showing <strong>{filteredExpenses.length}</strong> of{" "}
-            <strong>{expenseData.expenses.length}</strong> expenses
+            Showing {expensesData?.expenses?.length || 0} of{" "}
+            {expensesData?.pagination?.total || 0} expenses
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" disabled>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(page - 1)}
+              disabled={page === 1}
+            >
               Previous
             </Button>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(page + 1)}
+              disabled={!expensesData?.pagination?.hasNext}
+            >
               Next
             </Button>
           </div>
         </CardFooter>
       </Card>
 
-      {/* Add Expense Dialog */}
+      {/* Add/Edit Expense Dialog */}
       <Dialog open={isAddExpenseOpen} onOpenChange={setIsAddExpenseOpen}>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Add New Expense</DialogTitle>
+            <DialogTitle>
+              {selectedExpense ? "Edit Expense" : "Add New Expense"}
+            </DialogTitle>
             <DialogDescription>
-              Enter the details of the new expense transaction.
+              {selectedExpense
+                ? "Update the expense details below."
+                : "Enter the details of the new expense transaction."}
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-1 gap-3">
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  placeholder="Enter expense description"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="amount">Amount (₹)</Label>
-                  <Input
-                    id="amount"
-                    type="number"
-                    placeholder="Enter amount"
-                    min="1"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="date">Date</Label>
-                  <Input id="date" type="date" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="category">Category</Label>
-                  <Select>
-                    <SelectTrigger id="category">
-                      <SelectContent>
-                        <SelectItem value="maintenance">Maintenance</SelectItem>
-                        <SelectItem value="utility">Utilities</SelectItem>
-                        <SelectItem value="salary">Salaries</SelectItem>
-                        <SelectItem value="equipment">Equipment</SelectItem>
-                        <SelectItem value="other">Other</SelectItem>
-                      </SelectContent>
-                    </SelectTrigger>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="payment-method">Payment Method</Label>
-                  <Select>
-                    <SelectTrigger id="payment-method">
-                      <SelectContent>
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="online">Online</SelectItem>
-                        <SelectItem value="card">Card</SelectItem>
-                        <SelectItem value="bank">Bank Transfer</SelectItem>
-                      </SelectContent>
-                    </SelectTrigger>
-                  </Select>
-                </div>
-              </div>
-              <div>
-                <Label htmlFor="vendor">Vendor/Payee</Label>
-                <Input id="vendor" placeholder="Enter vendor or payee name" />
-              </div>
-              <div>
-                <Label htmlFor="notes">Notes (Optional)</Label>
-                <Input id="notes" placeholder="Add any additional notes" />
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsAddExpenseOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button onClick={() => setIsAddExpenseOpen(false)}>
-              Save Expense
-            </Button>
-          </DialogFooter>
+          <AddExpenseForm
+            expenseId={selectedExpense?.expenseId}
+            onSuccess={() => {
+              setIsAddExpenseOpen(false);
+              setSelectedExpense(null);
+            }}
+          />
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              expense record.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

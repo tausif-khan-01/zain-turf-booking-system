@@ -1,23 +1,22 @@
-"use client";
-
-import React, { useState } from "react";
-import { DollarSign, TrendingUp, TrendingDown, Wallet } from "lucide-react";
-import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import useMediaQuery from "@/hooks/use-media-query";
+import { format, startOfMonth, startOfWeek, startOfYear } from "date-fns";
+import { DollarSign, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { useState } from "react";
+import { ErrorAlert } from "./components/error/ErrorAlert";
 import FinancialCard from "./components/financial-overview/FinancialCard";
-import TransactionsTable from "./components/transactions/TransactionsTable";
-import MobileTransactionsList from "./components/transactions/MobileTransactionsList";
 import { Header } from "./components/layout/Header";
 import { TimeframeSelector } from "./components/layout/TimeframeSelector";
 import { TransactionsHeader } from "./components/layout/TransactionsHeader";
-import { ErrorAlert } from "./components/error/ErrorAlert";
+import MobileTransactionsList from "./components/transactions/MobileTransactionsList";
+import TransactionsTable from "./components/transactions/TransactionsTable";
 import { useFinancialSummary } from "./hooks/useFinancialSummary";
-import { useTransactions } from "./hooks/useTransactions";
 import { useSearchTransactions } from "./hooks/useSearchTransactions";
+import { useTransactions } from "./hooks/useTransactions";
 
 export default function FinancesPage() {
-  const [timeframe, setTimeframe] = useState("month");
+  const [timeframe, setTimeframe] = useState("today");
   const [transactionType, setTransactionType] = useState("all");
   const { searchQuery, setSearchQuery, debouncedSearchQuery, page, setPage } =
     useSearchTransactions();
@@ -37,6 +36,16 @@ export default function FinancesPage() {
     page,
     type: transactionType,
     search: debouncedSearchQuery,
+    startDate:
+      timeframe === "month"
+        ? startOfMonth(new Date())
+        : timeframe === "week"
+        ? startOfWeek(new Date(), { weekStartsOn: 1 })
+        : timeframe === "today"
+        ? format(new Date(), "yyyy-MM-dd")
+        : startOfYear(new Date()),
+    // today is the end date for the current month/week/year
+    endDate: format(new Date(), "yyyy-MM-dd"),
   });
 
   if (summaryError || transactionsError) {
@@ -63,11 +72,7 @@ export default function FinancesPage() {
         </div>
       </Header>
 
-      <TimeframeSelector
-        value={timeframe}
-        onChange={setTimeframe}
-        isLoading={isSummaryLoading}
-      />
+      <TimeframeSelector value={timeframe} onChange={setTimeframe} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <FinancialCard
