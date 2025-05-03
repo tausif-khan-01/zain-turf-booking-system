@@ -26,6 +26,8 @@ import { format, parse } from "date-fns";
 import { useDashboardStats } from "./hooks/useDashboardStats";
 import { getSlotEndTime } from "@/lib/getSlotEndTime";
 
+export const BOOKING_URL = import.meta.env.VITE_BOOKING_URL;
+
 function MetricCard({ title, value, change, icon, timeframe }) {
   const isPositive = change >= 0;
   const timeframeText =
@@ -113,13 +115,17 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          {/* <Button variant="outline" size="sm">
             Export
-          </Button>
-          <Button size="sm">
-            <CalendarRange className="mr-2 h-4 w-4" />
-            New Booking
-          </Button>
+          </Button> */}
+          {BOOKING_URL && (
+            <Button size="sm" asChild>
+              <Link to={BOOKING_URL}>
+                <CalendarRange className="mr-2 h-4 w-4" />
+                New Booking
+              </Link>
+            </Button>
+          )}
         </div>
       </div>
 
