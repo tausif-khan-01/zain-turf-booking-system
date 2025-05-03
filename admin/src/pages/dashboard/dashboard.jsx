@@ -120,7 +120,7 @@ export default function Dashboard() {
           </Button> */}
           {BOOKING_URL && (
             <Button size="sm" asChild>
-              <Link to={BOOKING_URL}>
+              <Link to={BOOKING_URL} target="_blank">
                 <CalendarRange className="mr-2 h-4 w-4" />
                 New Booking
               </Link>
