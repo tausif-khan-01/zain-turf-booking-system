@@ -209,21 +209,23 @@ function ExpensesPage() {
           <>
             <ExpenseCard
               title="Total Expenses"
-              value={`₹${summary?.totalExpenses?.toLocaleString()}`}
+              value={`₹${summary?.totalExpenses?.toLocaleString() || 0}`}
               change={summary?.expensesChange || 0}
               icon={<Receipt className="h-5 w-5" />}
               timeframe={timeframe}
             />
             <ExpenseCard
               title="Maintenance"
-              value={`₹${summary?.categories?.maintenance?.toLocaleString()}`}
+              value={`₹${
+                summary?.categories?.maintenance?.toLocaleString() || 0
+              }`}
               change={summary?.maintenanceChange || 0}
               icon={<Wrench className="h-5 w-5" />}
               timeframe={timeframe}
             />
             <ExpenseCard
               title="Utilities"
-              value={`₹${summary?.categories?.utility?.toLocaleString()}`}
+              value={`₹${summary?.categories?.utility?.toLocaleString() || 0}`}
               change={summary?.utilityChange || 0}
               icon={<Zap className="h-5 w-5" />}
               timeframe={timeframe}
@@ -378,7 +380,9 @@ function ExpensesPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => handleEdit(expense)}>
+                              <DropdownMenuItem
+                                onClick={() => handleEdit(expense)}
+                              >
                                 <Edit className="mr-2 h-4 w-4" />
                                 Edit
                               </DropdownMenuItem>

@@ -13,7 +13,7 @@ import apiRoutes from "./routes/api.js";
 const app = express();
 
 // Connect to MongoDB
-connectDB();
+ connectDB();
 
 // Initialize default users if none exist
 initializeDefaultUsers();

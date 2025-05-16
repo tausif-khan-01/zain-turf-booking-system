@@ -165,7 +165,7 @@ export function AddExpenseForm({ expenseId, onSuccess }) {
                 <SelectContent>
                   <SelectItem value="Razorpay">Razorpay</SelectItem>
                   <SelectItem value="Cash">Cash</SelectItem>
-                  <SelectItem value="BankTransfer">Bank Transfer</SelectItem>
+                  <SelectItem value="Bank Transfer">Bank Transfer</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

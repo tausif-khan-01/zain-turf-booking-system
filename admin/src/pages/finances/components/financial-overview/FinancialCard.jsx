@@ -3,7 +3,15 @@ import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
-const FinancialCard = ({ title, value, change, icon, timeframe, positive, isLoading }) => {
+const FinancialCard = ({
+  title,
+  value,
+  change,
+  icon,
+  timeframe,
+  positive,
+  isLoading,
+}) => {
   if (isLoading) {
     return (
       <Card>
@@ -20,7 +28,13 @@ const FinancialCard = ({ title, value, change, icon, timeframe, positive, isLoad
 
   const isPositive = change >= 0;
   const timeframeText =
-    timeframe === "week" ? "week" : timeframe === "month" ? "month" : "year";
+    timeframe === "today"
+      ? "yesterday"
+      : timeframe === "week"
+      ? "week"
+      : timeframe === "month"
+      ? "month"
+      : "year";
   const showPositiveIndicator = positive ? isPositive : !isPositive;
 
   return (
@@ -48,7 +62,7 @@ const FinancialCard = ({ title, value, change, icon, timeframe, positive, isLoad
             <span>{Math.abs(change)}%</span>
           </div>
           <span className="text-xs text-muted-foreground ml-1">
-            vs last {timeframeText}
+            vs {timeframe !== "today" && "last"} {timeframeText}
           </span>
         </div>
       </CardContent>
@@ -56,4 +70,4 @@ const FinancialCard = ({ title, value, change, icon, timeframe, positive, isLoad
   );
 };
 
-export default FinancialCard; 
+export default FinancialCard;
