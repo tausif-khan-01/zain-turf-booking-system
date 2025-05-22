@@ -3,7 +3,7 @@ name: Deploy Server to Heroku
 on:
   push:
     branches:
-      - main  # or your default branch
+      - main
 
 jobs:
   deploy:
@@ -16,9 +16,9 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '22'  # or your server's Node.js version
+          node-version: '22'
 
-      - name: Install Dependencies
+      - name: Install server dependencies
         run: |
           cd server
           npm install
@@ -29,5 +29,4 @@ jobs:
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
           heroku_app_name: ${{ secrets.HEROKU_APP_NAME }}
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
-          usedocker: false
-          appdir: "server"
+          appdir: server
