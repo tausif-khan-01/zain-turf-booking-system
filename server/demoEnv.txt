@@ -12,4 +12,4 @@ CORS_ORIGINS=http://localhost:3000,http://localhost:3001,https://your-production
 # Razorpay Test
 RAZORPAY_KEY_ID= 
 RAZORPAY_KEY_SECRET= 
-IS_CUSTOMER_PAYS_RAZORPAY_FEES= 1 / 0  
+IS_CUSTOMER_PAYS_RAZORPAY_FEES= 1 / 0
