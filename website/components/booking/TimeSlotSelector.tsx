@@ -68,6 +68,7 @@ export function TimeSlotSelector({
           date: format(new Date(date), "yyyy-MM-dd"),
         },
       });
+      console.log("Booked slots response:", api.baseURL, response.data);
       setBookedSlots(response.data.bookedSlots);
     } catch (error) {
       console.error("Error fetching booked slots:", error);
